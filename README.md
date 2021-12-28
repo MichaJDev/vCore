@@ -29,7 +29,14 @@ private vCore vMain = vCore.Main.getInstance();
 public void onEnable(){
     if(getServer().getPluginManager().getPlugin("vCore")!=null){
       users = new UserBuilder(vMain);
-    }
+    }else {
+			getLogger().severe("vCore note found...... disabling!");
+			getServer().getPluginManager().disablePlugin(this);
+		}
+}
+
+public void onDisable(){
+  getLogger().info("Disabled");
 }
 ```
 
