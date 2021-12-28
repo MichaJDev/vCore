@@ -42,3 +42,9 @@ Are you interested to support his project in anyway, pls feel free and email me
 
 ### Contributors
 - MichaJ (Vyx)
+
+### Changelog
+
+a1.0.2
+- Added flatfile database handlers
+- Added mysql Supporters
