@@ -20,6 +20,7 @@ __plugin.yml__
 depends: vCore
 ```
 __Main.java__
+
 Add this to your onEnable() if you are using any of the builders created in vCore
 for instance if you use the UserBuilder it'll be written down like:
 ```
