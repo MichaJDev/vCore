@@ -136,6 +136,26 @@ public class UserBuilder implements IUserBuilder {
 		return true;
 	}
 
+	public IUser getUserByName(String name) {
+		IUser user = new User();
+		main.getLogger().info("Trying to get user through name: " + name);
+		for (File i : getUsersFolder().listFiles()) {
+			FileConfiguration cfg = getUserCfg(UUID.fromString(i.getName()));
+			if (cfg.getString("Name") == name) {
+				main.getLogger().info("User Found by name: " + name);
+				user.setUUID(cfg.getString("UUID"));
+				user.setName(cfg.getString("Name"));
+				user.setBanned(cfg.getBoolean("Banned"));
+				user.setBanner(cfg.getString("Banner"));
+				user.setBanReason(cfg.getString("BanReason"));
+				user.setWarns(cfg.getInt("Warns"));
+			} else {
+				main.getLogger().info("User could not be found by name: " + name);
+			}
+		}
+		return user;
+	}
+
 	// Create Main Users Folder
 	private void createUsersFolder() {
 		File dir = new File(main.getDataFolder() + File.separator + "Users");
