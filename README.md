@@ -39,3 +39,6 @@ this makes you able to use anything that #UserBuilder implements.
 
 Are you interested to support his project in anyway, pls feel free and email me
 [My Email](michajanssen93@gmail.com)
+
+### Contributors
+- MichaJ (Vyx)
