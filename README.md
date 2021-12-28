@@ -7,5 +7,5 @@ The Essentials line gave to much "shite" than we ever needed and just cluttered 
 unneeded and clunky commands.
 User directories from the plugins have a big window to corrupt due to the way they flat files are kept so we've started to create vCore!
 
-## Plugins created with vCore
+### Plugins created with vCore
 - [vTeleportation](https://github.com/MichaJDev/vTeleportation/)
