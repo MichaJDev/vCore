@@ -1,0 +1,10 @@
+main: vCore.Main
+name: vCore
+description: vCore a Corelib for usermanagement
+version: 1.0
+authors:
+- xFlakesID
+- Vyx
+commands:
+   info:
+      description: shows info about vCore

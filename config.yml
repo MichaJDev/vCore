@@ -1,0 +1,7 @@
+useMYSQL: false
+SQL:
+   host: "localhost"
+   port: 3306
+   database: "VCOREDB"
+   username: "root"
+   password: ""
