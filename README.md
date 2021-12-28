@@ -25,7 +25,7 @@ Add this to your onEnable() if you are using any of the builders created in vCor
 for instance if you use the UserBuilder it'll be written down like:
 ```
 private IUserBuilder users;
-private vCore vMain = vCore.Main.getInstance();
+private vCore.Main vMain = vCore.Main.getInstance();
 public void onEnable(){
     if(getServer().getPluginManager().getPlugin("vCore")!=null){
       users = new UserBuilder(vMain);
