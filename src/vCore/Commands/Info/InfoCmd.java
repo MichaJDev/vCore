@@ -3,6 +3,7 @@ package vCore.Commands.Info;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import net.md_5.bungee.api.ChatColor;
 import vCore.Main;
@@ -20,12 +21,13 @@ public class InfoCmd implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender s, Command c, String l, String[] args) {
+		Player p = (Player) s;
 		if (c.getName().equalsIgnoreCase("info")) {
-			msg("&7# &6vCore &7#&f----------------------&7#");
-			msg("&7# &fMade by&7: &6xFlakesID aka &bVyx  ");
-			msg("&7# &fVersion: " + main.getDescription().getVersion());
-			msg("&7# &fAuthors: " + main.getDescription().getAuthors());
-			msg("&7# &6vCore &7#&f----------------------&7#");
+			p.sendMessage(msg("&7# &6vCore &7#&f----------------------&7#"));
+			p.sendMessage(msg("&7# &fMade by&7: &6xFlakesID aka &bVyx  "));
+			p.sendMessage(msg("&7# &fVersion: " + main.getDescription().getVersion()));
+			p.sendMessage(msg("&7# &fAuthors: " + main.getDescription().getAuthors()));
+			p.sendMessage(msg("&7# &6vCore &7#&f----------------------&7#"));
 			return false;
 		}
 

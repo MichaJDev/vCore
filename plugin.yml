@@ -1,7 +1,7 @@
 main: vCore.Main
 name: vCore
 description: vCore a Corelib for usermanagement
-version: 1.0
+version: a1.0.17
 authors:
 - xFlakesID
 - Vyx
