@@ -11,15 +11,12 @@ import vCore.Data.Builders.Users.UserBuilder;
 import vCore.Data.Builders.Users.Interface.IUserBuilder;
 import vCore.Dto.User.Interface.IUser;
 import vCore.Listeners.Login.LoginListener;
-import vCore.Sql.Database;
-import vCore.Sql.interfaces.IDataBase;
 
 public class Main extends JavaPlugin {
 
 	private static Main main;
 	private IUserBuilder _user;
 	private IConfigBuilder _cfg;
-	private IDataBase _db;
 
 	public static Main getInstance() {
 		return main;
@@ -27,9 +24,8 @@ public class Main extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
-		_user = new UserBuilder(main);
-		_cfg = new ConfigBuilder(main);
-		_db = new Database(main, _cfg);
+		_user = new UserBuilder(this);
+		_cfg = new ConfigBuilder(this);
 		getLogger().info("Loading commands.......");
 		getCommands();
 		getLogger().info("Loading Listeners........");
@@ -41,21 +37,14 @@ public class Main extends JavaPlugin {
 		getLogger().info("Creating Config");
 		if (!_cfg.configExists()) {
 			_cfg.createConfig();
-		} else {
-			if (_cfg.getConfig().getBoolean("useMYSQL")) {
-				getLogger().info("Connecting to  database");
-				_db.connect();
-				if (_db.isConnected() && !_db.exist("Users"))
-					_db.createFirstSetup();
-			}
 		}
 	}
 
 	@Override
 	public void onDisable() {
 		saveConfig();
-		getLogger().info("Saving all UserFiles");
 		if (_user.getAllUserUUIDs() != null) {
+			getLogger().info("Saving all UserFiles");
 			for (UUID u : _user.getAllUserUUIDs()) {
 				IUser user = _user.get(u);
 				getLogger().info("File for: " + user.getName() + " getting saved");
@@ -63,8 +52,6 @@ public class Main extends JavaPlugin {
 			}
 
 		}
-		getLogger().info("Disconnecting database");
-		_db.disconnect();
 	}
 
 	private void getCommands() {
@@ -72,7 +59,7 @@ public class Main extends JavaPlugin {
 	}
 
 	private void getListeners() {
-		getServer().getPluginManager().registerEvents(new LoginListener(this, _user, _db), this);
+		getServer().getPluginManager().registerEvents(new LoginListener(this, _user), this);
 		getLogger().info("Listeners Loaded.......");
 	}
 }
