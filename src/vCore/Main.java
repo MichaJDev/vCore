@@ -12,12 +12,14 @@ import vCore.Data.Builders.Users.Interface.IUserBuilder;
 import vCore.Dto.User.Interface.IUser;
 import vCore.Listeners.Login.LoginListener;
 import vCore.Sql.Database;
+import vCore.Sql.interfaces.IDataBase;
 
 public class Main extends JavaPlugin {
 
 	private static Main main;
 	private IUserBuilder _user;
 	private IConfigBuilder _cfg;
+	private IDataBase _db;
 
 	public static Main getInstance() {
 		return main;
@@ -25,8 +27,9 @@ public class Main extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
-		_user = new UserBuilder(this);
-		_cfg = new ConfigBuilder(this);
+		_user = new UserBuilder(main);
+		_cfg = new ConfigBuilder(main);
+		_db = new Database(main, _cfg);
 		getLogger().info("Loading commands.......");
 		getCommands();
 		getLogger().info("Loading Listeners........");
@@ -41,9 +44,9 @@ public class Main extends JavaPlugin {
 		} else {
 			if (_cfg.getConfig().getBoolean("useMYSQL")) {
 				getLogger().info("Connecting to  database");
-				Database.connect();
-				if (Database.isConnected() && !Database.exist("Users"))
-					Database.createFirstSetup();
+				_db.connect();
+				if (_db.isConnected() && !_db.exist("Users"))
+					_db.createFirstSetup();
 			}
 		}
 	}
@@ -52,12 +55,16 @@ public class Main extends JavaPlugin {
 	public void onDisable() {
 		saveConfig();
 		getLogger().info("Saving all UserFiles");
-		for (UUID u : _user.getAllUserUUIDs()) {
-			IUser user = _user.get(u);
-			getLogger().info("File for: " + user.getName() + " getting saved");
-			_user.saveUserFile(u);
+		if (_user.getAllUserUUIDs() != null) {
+			for (UUID u : _user.getAllUserUUIDs()) {
+				IUser user = _user.get(u);
+				getLogger().info("File for: " + user.getName() + " getting saved");
+				_user.saveUserFile(u);
+			}
+
 		}
 		getLogger().info("Disconnecting database");
+		_db.disconnect();
 	}
 
 	private void getCommands() {
@@ -65,7 +72,7 @@ public class Main extends JavaPlugin {
 	}
 
 	private void getListeners() {
-		getServer().getPluginManager().registerEvents(new LoginListener(this, _user), this);
+		getServer().getPluginManager().registerEvents(new LoginListener(this, _user, _db), this);
 		getLogger().info("Listeners Loaded.......");
 	}
 }

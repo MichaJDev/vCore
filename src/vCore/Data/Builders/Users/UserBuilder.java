@@ -28,6 +28,7 @@ public class UserBuilder implements IUserBuilder {
 	public List<UUID> getAllUserUUIDs() {
 		List<UUID> users = new ArrayList<UUID>();
 		for (File dir : getUsersFolder().listFiles()) {
+			main.getLogger().info(dir.getName());
 			users.add(UUID.fromString(dir.getName()));
 		}
 		return null;
@@ -160,20 +161,16 @@ public class UserBuilder implements IUserBuilder {
 	private void createUsersFolder() {
 		File dir = new File(main.getDataFolder() + File.separator + "Users");
 		if (!dir.exists()) {
-			if (dir.mkdirs()) {
-				main.getLogger().info("UserFolder Created.");
-			} else {
-				main.getLogger().info("Failed to create UserFolder.");
-			}
+			dir.mkdirs();
+			main.getLogger().info("UserFolder Created.");
 		}
-
 	}
 
 	// Get Main Users Folder
 	private File getUsersFolder() {
 		File dir = new File(main.getDataFolder() + File.separator + "Users");
 		if (!dir.exists())
-			return null;
+			createUsersFolder();
 		return dir;
 	}
 
@@ -199,25 +196,25 @@ public class UserBuilder implements IUserBuilder {
 		if (!file.exists()) {
 			try {
 				file.createNewFile();
-				FillUserFile(file, uuid);
+				Player p = main.getServer().getPlayer(uuid);
+				FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+				cfg.addDefault("UUID", p.getUniqueId().toString());
+				cfg.addDefault("Name", p.getName());
+				cfg.addDefault("Banned", false);
+				cfg.addDefault("Banner", "");
+				cfg.addDefault("BanReason", "");
+				cfg.addDefault("Warns", 0);
+				cfg.options().copyDefaults(true);
+				try {
+					cfg.save(getUserFile(uuid));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				main.getLogger().info("UserFile for" + main.getServer().getPlayer(uuid).getName() + " created.");
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
 		}
-	}
-
-	private void FillUserFile(File file, UUID uuid) {
-		Player p = main.getServer().getPlayer(uuid);
-		FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
-		cfg.addDefault("UUID", p.getUniqueId().toString());
-		cfg.addDefault("Name", p.getName());
-		cfg.addDefault("Banned", false);
-		cfg.addDefault("Banner", "");
-		cfg.addDefault("BanReason", "");
-		cfg.addDefault("Warns", 0);
-		cfg.options().copyDefaults(true);
-		saveUserFile(uuid);
 	}
 
 	public IUser createUserObject(Player p) {

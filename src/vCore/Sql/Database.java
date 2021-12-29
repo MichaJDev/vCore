@@ -13,27 +13,31 @@ import com.mysql.jdbc.Connection;
 import com.mysql.jdbc.PreparedStatement;
 
 import vCore.Main;
+import vCore.Config.Interface.IConfigBuilder;
 import vCore.Dto.Types.Users.UserEditType;
 import vCore.Dto.User.User;
 import vCore.Dto.User.Interface.IUser;
+import vCore.Sql.interfaces.IDataBase;
 
-public class Database {
+public class Database implements IDataBase {
 
-	static Main main = Main.getInstance();
+	Main main = Main.getInstance();
+	IConfigBuilder cfg;
 
-	public Database(Main _main) {
+	public Database(Main _main, IConfigBuilder _cfg) {
 		main = _main;
+		cfg = _cfg;
 	}
 
-	public static String host = main.getConfig().getString("SQL.host");
-	public static String port = main.getConfig().getString("SQL.port");
-	public static String database = main.getConfig().getString("SQL.database");
-	public static String username = main.getConfig().getString("SQL.username");
-	public static String password = main.getConfig().getString("SQL.password");
-	public static Connection con;
-	static ConsoleCommandSender console = Bukkit.getConsoleSender();
+	private String host = cfg.getConfig().getString("SQL.host");
+	private String port = cfg.getConfig().getString("SQL.port");
+	private String database = cfg.getConfig().getString("SQL.database");
+	private String username = cfg.getConfig().getString("SQL.username");
+	private String password = cfg.getConfig().getString("SQL.password");
+	private Connection con;
+	private ConsoleCommandSender console = Bukkit.getConsoleSender();
 
-	public static void connect() {
+	public void connect() {
 
 		if (!isConnected()) {
 			try {
@@ -47,7 +51,7 @@ public class Database {
 	}
 
 	// disconnect
-	public static void disconnect() {
+	public void disconnect() {
 		if (isConnected()) {
 			try {
 				con.close();
@@ -59,21 +63,21 @@ public class Database {
 	}
 
 	// isConnected
-	public static boolean isConnected() {
+	public boolean isConnected() {
 		return (con == null ? false : true);
 	}
 
 	// getConnection
-	public static Connection getConnection() {
+	public Connection getConnection() {
 		return con;
 	}
 
-	public static void createFirstSetup() {
+	public void createFirstSetup() {
 		createDatabase();
 		createUserTable();
 	}
 
-	public static Boolean exist(String tableName) {
+	public Boolean exist(String tableName) {
 		Connection c = getConnection();
 		Boolean exist = false;
 		PreparedStatement preparedStatement;
@@ -93,7 +97,7 @@ public class Database {
 
 	}
 
-	private static void createDatabase() {
+	private void createDatabase() {
 		Connection c = getConnection();
 		String query = "CREATE DATABASE IF NOT EXISTS VCOREDB";
 		try (Statement stmt = c.createStatement()) {
@@ -107,7 +111,7 @@ public class Database {
 		}
 	}
 
-	private static void createUserTable() {
+	private void createUserTable() {
 		Connection c = getConnection();
 		try {
 			Statement stmt = c.createStatement();
@@ -128,7 +132,7 @@ public class Database {
 		}
 	}
 
-	public static void createUser(IUser user) {
+	public void createUser(IUser user) {
 		String query = "INSERT INTO users (uuid, name, ip,banned,banner,banreason,warns " + "VALUES ('"
 				+ user.getUUID().toString() + "','" + user.getName() + "','" + user.getBanned() + "','"
 				+ user.getBanReason() + "','" + user.getBanner() + "','" + user.getWarns() + "')";
@@ -137,7 +141,7 @@ public class Database {
 
 	}
 
-	public static void editUser(UserEditType type, IUser user) {
+	public void editUser(UserEditType type, IUser user) {
 		String query, log;
 		switch (type) {
 		case BANNED:
@@ -175,14 +179,14 @@ public class Database {
 		}
 	}
 
-	public static void deleteUser(IUser user) {
+	public void deleteUser(IUser user) {
 		String query, log;
 		query = "DELETE FROM users WHERE uuid='" + user.getUUID().toString() + "'";
 		log = "User deleted from table: " + user.getName() + " With uuid: " + user.getUUID().toString();
 		createStatement(query, log);
 	}
 
-	public static IUser getUser(UUID uuid) {
+	public IUser getUser(UUID uuid) {
 		Connection c = getConnection();
 		IUser user = new User();
 		String query;
@@ -205,7 +209,7 @@ public class Database {
 		return user;
 	}
 
-	private static void createStatement(String query, String log) {
+	private void createStatement(String query, String log) {
 		Connection c = getConnection();
 		try {
 			Statement stmt = (Statement) c.createStatement();
@@ -219,7 +223,7 @@ public class Database {
 		}
 	}
 
-	public static Boolean userExist(String uuid) {
+	public Boolean userExist(String uuid) {
 		Connection c = getConnection();
 		Boolean exist = false;
 		String query = "SELECT * FROM users WHERE uuid='" + uuid + "'";
@@ -234,5 +238,5 @@ public class Database {
 
 		return exist;
 	}
-	
+
 }

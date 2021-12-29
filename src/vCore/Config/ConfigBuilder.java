@@ -3,6 +3,7 @@ package vCore.Config;
 import java.io.File;
 
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import vCore.Main;
 import vCore.Config.Interface.IConfigBuilder;
@@ -58,7 +59,14 @@ public class ConfigBuilder implements IConfigBuilder {
 
 	@Override
 	public FileConfiguration getConfig() {
-		return main.getConfig();
+		return YamlConfiguration.loadConfiguration(getConfigFile());
+	}
+
+	private File getConfigFile() {
+		File file = new File(getMainFolder(), "config.yml");
+		if (!file.exists())
+			return null;
+		return file;
 	}
 
 	@Override
