@@ -28,10 +28,9 @@ public class UserBuilder implements IUserBuilder {
 	public List<UUID> getAllUserUUIDs() {
 		List<UUID> users = new ArrayList<UUID>();
 		for (File dir : getUsersFolder().listFiles()) {
-			main.getLogger().info(dir.getName());
 			users.add(UUID.fromString(dir.getName()));
 		}
-		return null;
+		return users;
 	}
 
 	@Override
@@ -238,14 +237,14 @@ public class UserBuilder implements IUserBuilder {
 		}
 	}
 
-	private File getUserFile(UUID uuid) {
+	public File getUserFile(UUID uuid) {
 		File file = new File(getUserFolder(uuid), "player.yml");
 		if (!file.exists())
 			return null;
 		return file;
 	}
 
-	private FileConfiguration getUserCfg(UUID uuid) {
+	public FileConfiguration getUserCfg(UUID uuid) {
 		FileConfiguration cfg = YamlConfiguration.loadConfiguration(getUserFile(uuid));
 		return cfg;
 	}

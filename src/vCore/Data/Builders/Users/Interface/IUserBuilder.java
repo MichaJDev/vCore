@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import vCore.Dto.Types.Users.UserEditType;
@@ -34,4 +35,8 @@ public interface IUserBuilder {
 	public IUser createUserObject(Player p);
 
 	public File getUserFolder(UUID uuid);
+
+	public FileConfiguration getUserCfg(UUID uuid);
+
+	public File getUserFile(UUID uuid);
 }

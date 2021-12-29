@@ -1,7 +1,9 @@
 package vCore;
 
+import java.io.IOException;
 import java.util.UUID;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import vCore.Commands.Info.InfoCmd;
@@ -47,8 +49,13 @@ public class Main extends JavaPlugin {
 			getLogger().info("Saving all UserFiles");
 			for (UUID u : _user.getAllUserUUIDs()) {
 				IUser user = _user.get(u);
+				FileConfiguration cfg = _user.getUserCfg(u);
 				getLogger().info("File for: " + user.getName() + " getting saved");
-				_user.saveUserFile(u);
+				try {
+					cfg.save(_user.getUserFile(u));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 
 		}
