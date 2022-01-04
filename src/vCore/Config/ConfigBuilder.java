@@ -23,6 +23,12 @@ public class ConfigBuilder implements IConfigBuilder {
 		FileConfiguration cfg = main.getConfig();
 		cfg.addDefault("ServerName:", "");
 		cfg.addDefault("Discord", "");
+		cfg.addDefault("useMYSQL", false);
+		cfg.addDefault("SQL.host", "127.0.0.1");
+		cfg.addDefault("SQL.port", "3306");
+		cfg.addDefault("SQL.database", "vCoreDB");
+		cfg.addDefault("SQL.username", "root");
+		cfg.addDefault("SQL.password", "");
 		cfg.options().copyDefaults(true);
 		main.saveConfig();
 	}

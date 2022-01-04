@@ -16,27 +16,27 @@ public interface IUserBuilder {
 
 	public void create(Player p);
 
-	public void edit(UUID uuid, UserEditType edit, String node);
+	public void edit(IUser user, UserEditType edit, String node);
 
-	public void delete(UUID uuid);
+	public void delete(IUser user);
 
-	public Boolean userExist(UUID uuid);
+	public Boolean userExist(IUser user);
 
 	public Boolean userFolderExist();
 
 	public void Startup();
 
-	public void Add(UUID uuid, String key, String value);
+	public void Add(IUser user, String key, String value);
 
 	public List<UUID> getAllUserUUIDs();
 
-	public void saveUserFile(UUID uuid);
+	public void saveUserFile(IUser user);
 
 	public IUser createUserObject(Player p);
 
-	public File getUserFolder(UUID uuid);
+	public File getUserFolder(IUser user);
 
-	public FileConfiguration getUserCfg(UUID uuid);
+	public FileConfiguration getUserCfg(IUser user);
 
-	public File getUserFile(UUID uuid);
+	public File getUserFile(IUser user);
 }

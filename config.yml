@@ -1,2 +1,9 @@
-ServerName: vCore
-Discord: https://discord.gg/yFYssw3prY
+ServerName: ''
+Discord: ''
+useMYSQL: false
+SQL:
+   host: 127.0.0.1
+   port: '3306'
+   database: vCoreDB
+   username: root
+   password: ''
