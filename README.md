@@ -42,9 +42,9 @@ public void onDisable(){
 
 this makes you able to use anything that #UserBuilder implements.
 
-### Investors&Supporters
+### Investors & Supporters
 
-Are you interested to support his project in anyway, pls feel free and email me
+Are you interested to support his project in any way, pls feel free and email me
 [My Email](michajanssen93@gmail.com)
 
 ### Contributors
