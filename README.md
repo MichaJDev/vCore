@@ -17,7 +17,7 @@ Firstly you need to implement it into your jars
 
 __plugin.yml__
 ```
-depends: vCore
+depends: [vCore]
 ```
 __Main.java__
 
@@ -27,14 +27,14 @@ for instance if you use the UserBuilder it'll be written down like:
 private IUserBuilder users;
 private vCore.Main vMain = vCore.Main.getInstance();
 public void onEnable(){
-    if(getServer().getPluginManager().getPlugin("vCore")!=null){
+    if(getServer().getPluginManager().getPlugin("vCore") != null){
       users = new UserBuilder(vMain);
-    }else {
-			getLogger().severe("vCore note found...... disabling!");
+    } else {
+			getLogger().severe("vCore not found...... disabling!");
 			getServer().getPluginManager().disablePlugin(this);
 		}
 }
-
+@Override
 public void onDisable(){
   getLogger().info("Disabled");
 }
