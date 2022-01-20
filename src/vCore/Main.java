@@ -89,7 +89,7 @@ public class Main extends JavaPlugin {
 	}
 
 	private void getCommands() {
-		this.getCommand("info").setExecutor(new InfoCmd(this, _user));
+		this.getCommand().setExecutor(new InfoCmd(this, _user));
 	}
 
 	private void getListeners() {
