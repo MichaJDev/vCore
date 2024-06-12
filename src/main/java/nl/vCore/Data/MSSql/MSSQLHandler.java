@@ -33,7 +33,8 @@ public class MSSQLHandler {
      * @param connection The database connection to use.
      * @throws SQLException If there is an error executing the SQL statement.
      */
-    public void createPlayerTableIfNotExists(Connection connection) throws SQLException {
+    public void createPlayerTableIfNotExists() throws SQLException {
+        Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
         String tableName = "players";
         String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
                 "id VARCHAR(50) PRIMARY KEY," +
