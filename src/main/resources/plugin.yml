@@ -1,0 +1,4 @@
+name: vCore
+version: '${project.version}'
+main: nl.vCore.Main
+api-version: '1.20'
