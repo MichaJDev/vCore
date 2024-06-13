@@ -7,7 +7,7 @@ vCore is an allround databasing plugin that specialises in saving all your neces
 
 - [x] ConfigHandler
 - [ ] GlobalDatabaseHandler
-- [ ] DTOs
+- [x] DTOs
   - [x] Users
   - [x] Bans
   - [x] Homes
