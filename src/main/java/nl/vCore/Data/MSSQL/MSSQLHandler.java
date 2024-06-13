@@ -88,6 +88,48 @@ public class MSSQLHandler {
             msgUtils.log("Table '" + tableName + "' created (if not already exists)...");
         }
     }
+    /**
+     * Creates a warns table if it does not already exist in the database.
+     *
+     * @throws SQLException If there is an error executing the SQL statement.
+     */
+    public void createWarnsTableIfNotExists() throws SQLException {
+        Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+        String tableName = "warns";
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
+                "id INT PRIMARY KEY IDENTITY(1,1)," +
+                "warner VARCHAR(50)," +
+                "warned VARCHAR(50)," +
+                "reason text," +
+                "date VARCHAR(50)" +
+                ");";
+        try (Statement statement = connection.createStatement()){
+            statement.execute(createTableSQL);
+            msgUtils.log("Table '" + tableName + "' created (if not already exists)...");
+        }
+    }
+    /**
+     * Creates a homes table if it does not already exist in the database.
+     *
+     * @throws SQLException If there is an error executing the SQL statement.
+     */
+    public void createWarpsTableIfNotExists() throws SQLException {
+        Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+        String tableName = "warps";
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
+                "id INT PRIMARY KEY IDENTITY(1,1)," +
+                "creator VARCHAR(50)," +
+                "name VARCHAR(50)," +
+                "x INT," +
+                "y INT," +
+                "z INT," +
+                "world VARCHAR(50)" +
+                ");";
+        try (Statement statement = connection.createStatement()){
+            statement.execute(createTableSQL);
+            msgUtils.log("Table '" + tableName + "' created (if not already exists)...");
+        }
+    }
 
     /**
      * Inserts a player record into the database.

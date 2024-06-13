@@ -1,12 +1,24 @@
 package nl.vCore.Data.Handlers.MSSQL;
 
+import nl.vCore.Data.MSSQL.MSSQLHandler;
 import nl.vCore.Dto.Home;
 import nl.vCore.Dto.User;
+import nl.vCore.Main;
+import nl.vCore.Utils.MessageUtils;
+
+import java.sql.SQLException;
 
 public class MSSQLHomesHandler {
 
+    private static final MSSQLHandler sqlHandler = new MSSQLHandler(Main.getInstance());
+    private static final MessageUtils msg = new MessageUtils(Main.getInstance());
     public static void createTable(){
-
+        try{
+            msg.log("Creating new Homes Table in MSSQL DB...");
+            sqlHandler.createHomesTableIfNotExists();
+        }catch(SQLException e){
+            msg.severe(e.getMessage());
+        }
     }
 
     public static void create(Home h){

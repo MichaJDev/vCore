@@ -26,7 +26,6 @@ public final class Main extends JavaPlugin {
 
         if(!cfgHandler.doesConfigFileExist()){
             cfgHandler.createNewConfigFile();
-
         }
         if(cfgHandler.isFirstTime()){
             GlobalDatabasingHandler.trifferFirstTime();

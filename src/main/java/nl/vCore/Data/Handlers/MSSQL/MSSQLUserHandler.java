@@ -15,9 +15,10 @@ import java.util.List;
 
 public class MSSQLUserHandler {
     private static final MSSQLHandler sqlHandler = new MSSQLHandler(Main.getInstance());
-
+    private static final MessageUtils msg = new MessageUtils(Main.getInstance());
     public static void createTable() {
         try {
+            msg.log("Creating new User Table in MSSQL DB...");
             sqlHandler.createPlayerTableIfNotExists();
         } catch (SQLException e) {
             MessageUtils msg = new MessageUtils(Main.getInstance());

@@ -14,6 +14,7 @@ public class MSSQLBanHandler {
     private static final MessageUtils msg = new MessageUtils(Main.getInstance());
     public static void createTable(){
         try{
+            msg.log("Creating new Bans Table in MSSQL DB...");
             sqlHandler.createBanTableIfNotExists();
         }catch(SQLException e){
             msg.severe(e.getMessage());
