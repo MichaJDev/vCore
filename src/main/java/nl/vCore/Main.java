@@ -2,7 +2,7 @@ package nl.vCore;
 
 import nl.vCore.Config.ConfigHandler;
 import nl.vCore.Data.Handlers.GlobalDatabasingHandler;
-import nl.vCore.Data.Handlers.MSSQL.MSSQLUserHandler;
+import nl.vCore.Data.Handlers.MSSQL.MSSQLUserFactory;
 import nl.vCore.Listeners.UserListener;
 import nl.vCore.Utils.MessageUtils;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -38,9 +38,9 @@ public final class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         msgUtils.warn("Comparing MinecraftServer Local OfflinePlayers to User Database before shutdown...");
-        if(!MSSQLUserHandler.compareDB()){
+        if(!MSSQLUserFactory.compareDB()){
             msgUtils.warn("DB Not the same as Local OfflinePlayers array... Updating...");
-            MSSQLUserHandler.elevateDB();
+            MSSQLUserFactory.elevateDB();
         }
     }
 

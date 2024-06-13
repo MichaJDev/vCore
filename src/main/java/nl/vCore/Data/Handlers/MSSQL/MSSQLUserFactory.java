@@ -1,7 +1,7 @@
 package nl.vCore.Data.Handlers.MSSQL;
 
 import com.google.common.collect.ImmutableMultiset;
-import nl.vCore.Data.MSSQL.MSSQLHandler;
+import nl.vCore.Data.MSSQL.Users.MSSQLUsersHandler;
 import nl.vCore.Dto.User;
 import nl.vCore.Main;
 import nl.vCore.Utils.DtoShaper;
@@ -13,13 +13,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MSSQLUserHandler {
-    private static final MSSQLHandler sqlHandler = new MSSQLHandler(Main.getInstance());
+public class MSSQLUserFactory {
+    private static final MSSQLUsersHandler sqlHandler = new MSSQLUsersHandler(Main.getInstance());
     private static final MessageUtils msg = new MessageUtils(Main.getInstance());
     public static void createTable() {
         try {
             msg.log("Creating new User Table in MSSQL DB...");
-            sqlHandler.createPlayerTableIfNotExists();
+            sqlHandler.createUsersTableIfNotExists();
         } catch (SQLException e) {
             MessageUtils msg = new MessageUtils(Main.getInstance());
             msg.log(e.getMessage());
@@ -27,15 +27,15 @@ public class MSSQLUserHandler {
     }
 
     public static void create(User u) {
-        sqlHandler.createPlayer(u);
+        sqlHandler.create(u);
     }
 
     public static void update(User u) {
-        sqlHandler.updatePlayer(u);
+        sqlHandler.update(u);
     }
 
     public static void delete(User u) {
-        sqlHandler.deletePlayer(u);
+        sqlHandler.delete(u);
     }
 
     public static boolean doesUserExist(User u) {
@@ -49,9 +49,9 @@ public class MSSQLUserHandler {
         }
         for (User u : localUList) {
             if (sqlHandler.checkIfUserExists(u)) {
-                sqlHandler.updatePlayer(u);
+                sqlHandler.update(u);
             } else {
-                sqlHandler.createPlayer(u);
+                sqlHandler.create(u);
             }
         }
         MessageUtils msgUtils = new MessageUtils(Main.getInstance());
@@ -61,7 +61,7 @@ public class MSSQLUserHandler {
     public static boolean compareDB() {
         boolean isEqual = false;
         List<User> localUList = new ArrayList<>();
-        List<User> dbUList = MSSQLUserHandler.sqlHandler.getAllPlayers();
+        List<User> dbUList = MSSQLUserFactory.sqlHandler.getAll();
 
         return equalsIgnoreOrder(dbUList, localUList);
     }

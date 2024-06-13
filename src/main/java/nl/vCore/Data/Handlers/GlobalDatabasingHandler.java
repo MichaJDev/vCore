@@ -35,11 +35,11 @@ public class GlobalDatabasingHandler {
     }
 
     private static void triggerMSSQLFirstTimeTask() {
-        MSSQLUserHandler.createTable();
-        MSSQLBanHandler.createTable();
-        MSSQLHomesHandler.createTable();
-        MSSQLWarpsHandler.createTable();
-        MSSQLWarnsHandler.createTable();
+        MSSQLUserFactory.createTable();
+        MSSQLBanFactory.createTable();
+        MSSQLHomesFactory.createTable();
+        MSSQLWarpsFactory.createTable();
+        MSSQLWarnsFactory.createTable();
     }
 
     private static void triggerMYSQLFirstTimeTask() {

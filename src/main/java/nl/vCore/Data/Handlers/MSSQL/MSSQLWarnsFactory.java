@@ -1,15 +1,15 @@
 package nl.vCore.Data.Handlers.MSSQL;
 
-import nl.vCore.Data.MSSQL.MSSQLHandler;
+import nl.vCore.Data.MSSQL.Warns.MSSQLWarnsHandler;
 import nl.vCore.Dto.Warn;
 import nl.vCore.Main;
 import nl.vCore.Utils.MessageUtils;
 
 import java.sql.SQLException;
 
-public class MSSQLWarnsHandler {
+public class MSSQLWarnsFactory {
 
-    private static final MSSQLHandler sqlHandler = new MSSQLHandler(Main.getInstance());
+    private static final MSSQLWarnsHandler sqlHandler = new MSSQLWarnsHandler(Main.getInstance());
     private static final MessageUtils msg = new MessageUtils(Main.getInstance());
 
     public static void createTable() {

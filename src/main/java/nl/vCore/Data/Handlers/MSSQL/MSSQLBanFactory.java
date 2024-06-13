@@ -1,6 +1,6 @@
 package nl.vCore.Data.Handlers.MSSQL;
 
-import nl.vCore.Data.MSSQL.MSSQLHandler;
+import nl.vCore.Data.MSSQL.Bans.MSSQLBansHandler;
 import nl.vCore.Dto.Ban;
 import nl.vCore.Dto.User;
 import nl.vCore.Main;
@@ -8,9 +8,9 @@ import nl.vCore.Utils.MessageUtils;
 
 import java.sql.SQLException;
 
-public class MSSQLBanHandler {
+public class MSSQLBanFactory {
 
-    private static final MSSQLHandler sqlHandler = new MSSQLHandler(Main.getInstance());
+    private static final MSSQLBansHandler sqlHandler = new MSSQLBansHandler(Main.getInstance());
     private static final MessageUtils msg = new MessageUtils(Main.getInstance());
     public static void createTable(){
         try{
@@ -21,7 +21,8 @@ public class MSSQLBanHandler {
         }
     }
     public static void create(Ban b){
-
+        msg.log("Creating Ban for " + Main.getInstance().getServer().getPlayer(b.getBannedUser().getId()) + "...") ;
+        sqlHandler.createBan(b);
     }
 
     public static void update(Ban b){

@@ -1,6 +1,6 @@
 package nl.vCore.Data.Handlers.MSSQL;
 
-import nl.vCore.Data.MSSQL.MSSQLHandler;
+import nl.vCore.Data.MSSQL.Homes.MSSQLHomesHandler;
 import nl.vCore.Dto.Home;
 import nl.vCore.Dto.User;
 import nl.vCore.Main;
@@ -8,9 +8,9 @@ import nl.vCore.Utils.MessageUtils;
 
 import java.sql.SQLException;
 
-public class MSSQLHomesHandler {
+public class MSSQLHomesFactory {
 
-    private static final MSSQLHandler sqlHandler = new MSSQLHandler(Main.getInstance());
+    private static final MSSQLHomesHandler sqlHandler = new MSSQLHomesHandler(Main.getInstance());
     private static final MessageUtils msg = new MessageUtils(Main.getInstance());
     public static void createTable(){
         try{

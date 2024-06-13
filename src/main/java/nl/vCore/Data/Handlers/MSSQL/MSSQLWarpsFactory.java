@@ -1,14 +1,14 @@
 package nl.vCore.Data.Handlers.MSSQL;
 
-import nl.vCore.Data.MSSQL.MSSQLHandler;
+import nl.vCore.Data.MSSQL.Warps.MSSQLWarpsHandler;
 import nl.vCore.Dto.Warp;
 import nl.vCore.Main;
 import nl.vCore.Utils.MessageUtils;
 
 import java.sql.SQLException;
 
-public class MSSQLWarpsHandler {
-    private static final MSSQLHandler sqlHandler = new MSSQLHandler(Main.getInstance());
+public class MSSQLWarpsFactory {
+    private static final MSSQLWarpsHandler sqlHandler = new MSSQLWarpsHandler(Main.getInstance());
     private static final MessageUtils msg = new MessageUtils(Main.getInstance());
 
     public static void createTable() {

@@ -1,7 +1,7 @@
 package nl.vCore.Listeners;
 
 import nl.vCore.Dto.User;
-import nl.vCore.Data.Handlers.MSSQL.MSSQLUserHandler;
+import nl.vCore.Data.Handlers.MSSQL.MSSQLUserFactory;
 import nl.vCore.Main;
 import nl.vCore.Utils.DtoShaper;
 import nl.vCore.Utils.MessageUtils;
@@ -16,12 +16,12 @@ public class UserListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent e){
         MessageUtils msg = new MessageUtils(Main.getInstance());
         User u = DtoShaper.userShaper(e.getPlayer());
-        if(MSSQLUserHandler.doesUserExist(u)){
+        if(MSSQLUserFactory.doesUserExist(u)){
             msg.log("User found, Updating...");
-            MSSQLUserHandler.update(u);
+            MSSQLUserFactory.update(u);
         }else{
             msg.log("User not found, Creating...");
-            MSSQLUserHandler.create(u);
+            MSSQLUserFactory.create(u);
         }
 
 
