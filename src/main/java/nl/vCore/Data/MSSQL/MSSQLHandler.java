@@ -1,4 +1,4 @@
-package nl.vCore.Data.MSSql;
+package nl.vCore.Data.MSSQL;
 
 import nl.vCore.Config.ConfigHandler;
 import nl.vCore.Dto.Ban;
@@ -8,29 +8,24 @@ import nl.vCore.Utils.MessageUtils;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 public class MSSQLHandler {
     private Main main = Main.getInstance();
+    MessageUtils msgUtils = new MessageUtils(main);
     private ConfigHandler cfg;
-
+    private final String JDBC_URL = "jdbc:sqlserver://" + cfg.getConfig().getString("MSSQL.ip") + "\\" + cfg.getConfig().getString("MSSQL.database_name") + ":" + cfg.getConfig().getString("MSSQL.port");
+    private final String USERNAME = cfg.getConfig().getString("MSSQL.username");
+    private final String PASSWORD = cfg.getConfig().getString("MSSQL.password");
     public MSSQLHandler(Main _main) {
         main = _main;
         cfg = new ConfigHandler(main);
     }
 
-    MessageUtils msgUtils = new MessageUtils(main);
-
-    private final String JDBC_URL = "jdbc:sqlserver://" + cfg.getConfig().getString("MSSQL.ip") + "\\" + cfg.getConfig().getString("MSSQL.database_name") + ":" + cfg.getConfig().getString("MSSQL.port");
-    private final String USERNAME = cfg.getConfig().getString("MSSQL.username");
-    private final String PASSWORD = cfg.getConfig().getString("MSSQL.password");
-
     /**
      * Creates a player table if it does not already exist in the database.
      *
-     * @param connection The database connection to use.
      * @throws SQLException If there is an error executing the SQL statement.
      */
     public void createPlayerTableIfNotExists() throws SQLException {
@@ -47,7 +42,50 @@ public class MSSQLHandler {
 
         try (Statement statement = connection.createStatement()) {
             statement.execute(createTableSQL);
-            System.out.println("Table '" + tableName + "' created (if not already exists).");
+            msgUtils.log("Table '" + tableName + "' created (if not already exists)...");
+        }
+    }
+
+    /**
+     * Creates a bans table if it does not already exist in the database.
+     *
+     * @throws SQLException If there is an error executing the SQL statement.
+     */
+    public void createBanTableIfNotExists() throws SQLException {
+        Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+        String tableName = "bans";
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
+                "id INT PRIMARY KEY IDENTITY(1,1)," +
+                "banner VARCHAR(50), " +
+                "banned VARCHAR(50), " +
+                "reason text," +
+                "date VARCHAR(50)" +
+                ");";
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(createTableSQL);
+        }
+        msgUtils.log("Table '" + tableName + "' created (if not already exists)...");
+    }
+    /**
+     * Creates a homes table if it does not already exist in the database.
+     *
+     * @throws SQLException If there is an error executing the SQL statement.
+     */
+    public void createHomesTableIfNotExists() throws SQLException {
+        Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+        String tableName = "homes";
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
+                "id INT PRIMARY KEY IDENTITY(1,1)," +
+                "owner VARCHAR(50)," +
+                "name VARCHAR(50)," +
+                "x INT," +
+                "y INT," +
+                "z INT," +
+                "world VARCHAR(50)" +
+                ");";
+        try (Statement statement = connection.createStatement()){
+            statement.execute(createTableSQL);
+            msgUtils.log("Table '" + tableName + "' created (if not already exists)...");
         }
     }
 
@@ -67,7 +105,7 @@ public class MSSQLHandler {
             insertStatement.setBoolean(5, player.isBanned());
             insertStatement.setInt(6, player.getWarnTimes());
             insertStatement.executeUpdate();
-            System.out.println("Player record inserted successfully!");
+            msgUtils.log("Player record inserted successfully!");
         } catch (SQLException e) {
             msgUtils.severe(e.getMessage());
         }
@@ -120,12 +158,13 @@ public class MSSQLHandler {
             updateStatement.setBoolean(4, player.isBanned());
             updateStatement.setInt(5, player.getWarnTimes());
             updateStatement.executeUpdate();
-            System.out.println("Player record updated successfully!");
+            msgUtils.log("Player record updated successfully!");
         } catch (SQLException e) {
             msgUtils.severe(e.getMessage());
         }
     }
-    public  boolean checkIfUserExists(User u) {
+
+    public boolean checkIfUserExists(User u) {
         String query = "SELECT COUNT(*) FROM player WHERE uuid = ?";
         try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -142,6 +181,7 @@ public class MSSQLHandler {
         }
         return false;
     }
+
     /**
      * Retrieves a list of all player records from the database.
      *
@@ -168,29 +208,32 @@ public class MSSQLHandler {
         }
         return players;
     }
-    public void deletePlayer(User u){
+
+    public void deletePlayer(User u) {
 
     }
-    public void createBan(Ban ban){
+
+    public void createBan(Ban ban) {
 
     }
 
-    public List<Ban> getAllBans(){
+    public List<Ban> getAllBans() {
         List<Ban> bList = new ArrayList<Ban>();
 
         return bList;
     }
 
-    public List<Ban> getAllBansFromUser(User user){
+    public List<Ban> getAllBansFromUser(User user) {
         List<Ban> ubList = new ArrayList<Ban>();
 
         return ubList;
     }
 
-    public void updateBan(Ban ban){
+    public void updateBan(Ban ban) {
 
     }
-    public void deleteBan(Ban ban){
+
+    public void deleteBan(Ban ban) {
 
     }
 

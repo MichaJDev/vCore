@@ -26,25 +26,10 @@ public final class Main extends JavaPlugin {
 
         if(!cfgHandler.doesConfigFileExist()){
             cfgHandler.createNewConfigFile();
+
         }
         if(cfgHandler.isFirstTime()){
-            msgUtils.log("First time starting up vCore, Initialising startup sequence...");
-            if(cfgHandler.isYml() &&!cfgHandler.isMSSQL() && !cfgHandler.isMYSSQL()){
-                msgUtils.log("YML Enabled, triggering YML Startup Sequence...");
-                GlobalDatabasingHandler.triggerYmlFirstTimeTask();
-            }else if(cfgHandler.isMSSQL() && !cfgHandler.isYml() && !cfgHandler.isMYSSQL()){
-                msgUtils.log("MSSQL Enabled, triggering MSSQL Startup Sequence...");
-                GlobalDatabasingHandler.triggerMSSQLFirstTimeTask();
-            }else if(cfgHandler.isMYSSQL() && !cfgHandler.isMSSQL() && !cfgHandler.isMYSSQL()){
-                msgUtils.log("MYSQL Enabled, triggering MYSQL Startup Sequence...");
-                GlobalDatabasingHandler.triggerMYSQLFirstTimeTask();
-            }else{
-                msgUtils.warn("More than 1 Database type is selected as true...");
-                msgUtils.warn("Please make sure only 1 type database is selected in the config.yml...");
-                msgUtils.warn("Disabling plugin to not corrupt anything...");
-                getServer().getPluginManager().disablePlugin(this);
-            }
-
+            GlobalDatabasingHandler.trifferFirstTime();
         }
         msgUtils.warn("Comparing Server Offline Player Logging to User Database...");
 

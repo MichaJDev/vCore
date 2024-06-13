@@ -1,7 +1,7 @@
 package nl.vCore.Data.Handlers.MSSQL;
 
 import com.google.common.collect.ImmutableMultiset;
-import nl.vCore.Data.MSSql.MSSQLHandler;
+import nl.vCore.Data.MSSQL.MSSQLHandler;
 import nl.vCore.Dto.User;
 import nl.vCore.Main;
 import nl.vCore.Utils.DtoShaper;
