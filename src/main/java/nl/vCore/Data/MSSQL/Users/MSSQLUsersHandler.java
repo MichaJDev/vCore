@@ -91,7 +91,7 @@ public class MSSQLUsersHandler
             updateStatement.setBoolean(4, player.isBanned());
             updateStatement.setInt(5, player.getWarnTimes());
             updateStatement.executeUpdate();
-            msgUtils.log("Player record updated successfully!");
+            msgUtils.log("User record updated successfully!");
         } catch (SQLException e) {
             msgUtils.severe(e.getMessage());
         }

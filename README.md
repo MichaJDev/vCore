@@ -1,7 +1,7 @@
 <span style="display:block;text-align:center">![vCoreLogo](https://i.imgur.com/ys4nNJg.png)</span>
 ## vCore
-Do you hate that your Essentials userfiles keep corrupting out of nowhere? don't worry! vCore is here
-vCore is an allround databasing plugin that specialises in saving all your necessary data about your users that you need!
+Do you hate that your Essentials user-files keep corrupting out of nowhere? don't worry! vCore is here
+vCore is an all-round databasing plugin that specialises in saving all your necessary data about your users that you need!
 
 ### Modules / Todolist
 

@@ -12,10 +12,12 @@ import org.bukkit.entity.Player;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class MSSQLUserFactory {
     private static final MSSQLUsersHandler sqlHandler = new MSSQLUsersHandler(Main.getInstance());
     private static final MessageUtils msg = new MessageUtils(Main.getInstance());
+
     public static void createTable() {
         try {
             msg.log("Creating new User Table in MSSQL DB...");
@@ -36,6 +38,19 @@ public class MSSQLUserFactory {
 
     public static void delete(User u) {
         sqlHandler.delete(u);
+    }
+
+    public static User read(Player p) {
+        return sqlHandler.read(p.getUniqueId().toString());
+    }
+
+    public static User readFromUUID(String uuid) {
+        User u = new User();
+        u.setId(UUID.fromString(uuid));
+        if (doesUserExist(u)) {
+            return sqlHandler.read(uuid);
+        }
+        return null;
     }
 
     public static boolean doesUserExist(User u) {
