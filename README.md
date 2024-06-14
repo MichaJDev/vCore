@@ -13,19 +13,41 @@ vCore is an all-round databasing plugin that specialises in saving all your nece
   - [x] Homes
   - [x] Warns
   - [x] Warps
-- [ ] MSSQLHandler
-  - [x] MSSQLUserHandler  
-  - [ ] MSSQLBansHandler
-  - [ ] MSSQLHomesHandler
-  - [ ] MSSQLWarnsHandler
-  - [ ] MSSQLWarpsHandler
-- [ ] MYSQLHandler
+  
+-[ ] MSSQL
+  - [ ] MSSQLFactories
+    - [x] MSSQLUsersFactory
+    - [x] MSSQLHomesFactory
+    - [ ] MSSQLBansFactory
+    - [ ] MSSQLWarnsFactory
+    - [ ] MSSQLWarpsFactory
+  - [ ] MSSQLHandler
+    - [x] MSSQLUserHandler  
+    - [ ] MSSQLBansHandler
+    - [x] MSSQLHomesHandler
+    - [ ] MSSQLWarnsHandler
+    - [ ] MSSQLWarpsHandler
+- [ ] MYSQL
+  - [ ] MSYSQLFactories
+    - [ ] MYSQLUsersFactory
+    - [ ] MYSQLHomesFactory
+    - [ ] MYSQLBansFactory
+    - [ ] MYSQLWarnsFactory
+    - [ ] MYSQLWarpsFactory
+  - [ ] MYSQLHandler
     - [ ] MYSQLUserHandler
     - [ ] MYSQLBansHandler
     - [ ] MYSQLHomesHandler
     - [ ] MYSQLWarnsHandler
     - [ ] MYSQLWarpsHandler
-- [ ] YAMLHandler
+- [ ] YAML
+  - [ ] YAMLFactories
+    - [ ] YamlUserFactory
+    - [ ] YamlHomesFactory
+    - [ ] YamlBansFactory
+    - [ ] YamlWarnsFactory
+    - [ ] YamlWarpsFactory
+  - [ ] YAMLHandler
     - [ ] YAMLUserHandler
     - [ ] YAMLBansHandler
     - [ ] YAMLHomesHandler

@@ -2,12 +2,15 @@ package nl.vCore.Data.MSSQL.Homes;
 
 import nl.vCore.Config.ConfigHandler;
 import nl.vCore.Dto.Home;
+import nl.vCore.Dto.User;
 import nl.vCore.Main;
 import nl.vCore.Utils.DtoShaper;
 import nl.vCore.Utils.MessageUtils;
 import org.bukkit.Location;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class MSSQLHomesHandler {
@@ -111,5 +114,66 @@ public class MSSQLHomesHandler {
         }
     }
 
+    public boolean checkIfHomeExist(Home h){
+        String query = "SELECT COUNT(*) FROM homes WHERE name = ?";
+        try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
+            preparedStatement.setString(1, h.getName());
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            msgUtils.severe(e.getMessage());
+        }
+        return false;
+    }
+    public List<Home> getHomesFromUserUuid(String userUuid) {
+        List<Home> homes = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD)) {
+            String query = "SELECT * FROM homes WHERE owner = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, userUuid);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        Home h = new Home();
+                        h.setId(rs.getInt("id"));
+                        h.setName(rs.getString("name"));
+                        h.setOwner(DtoShaper.userShaper(main.getServer().getPlayer(UUID.fromString("owner"))));
+                        Location loc = new Location(main.getServer().getWorld(rs.getString("world")), rs.getInt("x"), rs.getInt("y"), rs.getInt("z"));
+                        h.setLocation(loc);
+                        homes.add(h);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            msgUtils.severe(e.getMessage());
+        }
+        return homes;
+    }
+    public List<Home> getAll() {
+        List<Home> homes = new ArrayList<>();
+        String selectAllQuery = "SELECT * FROM users";
+        try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+             PreparedStatement selectAllStatement = connection.prepareStatement(selectAllQuery);
+             ResultSet resultSet = selectAllStatement.executeQuery()) {
+            while (resultSet.next()) {
+                Home h = new Home();
+                h.setId(resultSet.getInt("id"));
+                h.setName(resultSet.getString("name"));
+                h.setOwner(DtoShaper.userShaper(main.getServer().getPlayer(UUID.fromString(resultSet.getString("owner")))));
+                Location loc = new Location(main.getServer().getWorld(resultSet.getString("world")), resultSet.getInt("x"), resultSet.getInt("y"), resultSet.getInt("z"));
+                h.setLocation(loc);
+                homes.add(h);
+
+            }
+        } catch (SQLException e) {
+            msgUtils.severe(e.getMessage());
+        }
+        return homes;
+    }
 }
+
