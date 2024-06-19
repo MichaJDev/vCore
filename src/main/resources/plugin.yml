@@ -2,3 +2,4 @@ name: vCore
 version: '${project.version}'
 main: nl.vCore.Main
 api-version: '1.20'
+description: A databasing plugin for User Information such as homes bans warnings

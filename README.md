@@ -55,3 +55,4 @@ vCore is an all-round databasing plugin that specialises in saving all your nece
     - [ ] YAMLWarpsHandler
 
 ### Supported Plugins
+- None yet :)
