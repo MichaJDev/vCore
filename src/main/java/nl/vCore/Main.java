@@ -1,8 +1,8 @@
 package nl.vCore;
 
 import nl.vCore.Config.ConfigHandler;
-import nl.vCore.Data.Handlers.GlobalDatabasingHandler;
-import nl.vCore.Data.Handlers.MSSQL.MSSQLUserFactory;
+import nl.vCore.Data.Factories.GlobalDatabasingHandler;
+import nl.vCore.Data.Factories.MSSQL.MSSQLUserFactory;
 import nl.vCore.Listeners.UserListener;
 import nl.vCore.Utils.MessageUtils;
 import org.bukkit.plugin.java.JavaPlugin;

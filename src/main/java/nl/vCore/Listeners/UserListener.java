@@ -1,7 +1,7 @@
 package nl.vCore.Listeners;
 
 import nl.vCore.Dto.User;
-import nl.vCore.Data.Handlers.MSSQL.MSSQLUserFactory;
+import nl.vCore.Data.Factories.MSSQL.MSSQLUserFactory;
 import nl.vCore.Main;
 import nl.vCore.Utils.DtoShaper;
 import nl.vCore.Utils.MessageUtils;

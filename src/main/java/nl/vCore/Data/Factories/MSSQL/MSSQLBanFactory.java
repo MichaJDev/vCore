@@ -1,4 +1,4 @@
-package nl.vCore.Data.Handlers.MSSQL;
+package nl.vCore.Data.Factories.MSSQL;
 
 import java.util.List;
 import nl.vCore.Data.MSSQL.Bans.MSSQLBansHandler;

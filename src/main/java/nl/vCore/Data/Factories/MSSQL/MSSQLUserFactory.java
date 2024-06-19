@@ -1,4 +1,4 @@
-package nl.vCore.Data.Handlers.MSSQL;
+package nl.vCore.Data.Factories.MSSQL;
 
 import com.google.common.collect.ImmutableMultiset;
 import nl.vCore.Data.MSSQL.Users.MSSQLUsersHandler;

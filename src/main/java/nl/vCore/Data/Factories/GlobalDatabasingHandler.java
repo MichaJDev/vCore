@@ -1,7 +1,7 @@
-package nl.vCore.Data.Handlers;
+package nl.vCore.Data.Factories;
 
 import nl.vCore.Config.ConfigHandler;
-import nl.vCore.Data.Handlers.MSSQL.*;
+import nl.vCore.Data.Factories.MSSQL.*;
 import nl.vCore.Main;
 import nl.vCore.Utils.MessageUtils;
 
