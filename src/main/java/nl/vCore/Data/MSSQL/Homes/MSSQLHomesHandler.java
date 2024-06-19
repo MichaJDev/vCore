@@ -65,8 +65,8 @@ public class MSSQLHomesHandler {
         String selectQuery = "SELECT * FROM users WHERE id = ? AND name = ?";
         try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement selectStatement = connection.prepareStatement(selectQuery)) {
-            selectStatement.setInt(1, home.getId());
-            selectStatement.setString(2, home.getName());
+            selectStatement.setInt(0, home.getId());
+            selectStatement.setString(1, home.getName());
             try (ResultSet resultSet = selectStatement.executeQuery()) {
                 if (resultSet.next()) {
                     Location location = new Location(main.getServer().getWorld(resultSet.getString("world")), resultSet.getInt("x"), resultSet.getInt("y"), resultSet.getInt("z"));
@@ -109,6 +109,7 @@ public class MSSQLHomesHandler {
             deleteStatement.setString(0, h.getOwner().getId().toString());
             deleteStatement.setString(1, h.getName());
             deleteStatement.setInt(2, h.getId());
+            deleteStatement.executeUpdate();
         }catch(SQLException e){
             msgUtils.severe(e.getMessage());
         }
@@ -119,7 +120,7 @@ public class MSSQLHomesHandler {
         try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            preparedStatement.setString(1, h.getName());
+            preparedStatement.setString(0, h.getName());
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
@@ -136,7 +137,7 @@ public class MSSQLHomesHandler {
         try (Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD)) {
             String query = "SELECT * FROM homes WHERE owner = ?";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, userUuid);
+                stmt.setString(0, userUuid);
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Home h = new Home();

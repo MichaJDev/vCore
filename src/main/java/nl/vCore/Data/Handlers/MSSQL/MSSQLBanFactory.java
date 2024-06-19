@@ -1,5 +1,6 @@
 package nl.vCore.Data.Handlers.MSSQL;
 
+import java.util.List;
 import nl.vCore.Data.MSSQL.Bans.MSSQLBansHandler;
 import nl.vCore.Dto.Ban;
 import nl.vCore.Dto.User;
@@ -26,15 +27,20 @@ public class MSSQLBanFactory {
     }
 
     public static void update(Ban b){
-
+        sqlHandler.updateBan(b);
     }
 
     public static void delete(Ban b){
-
+        sqlHandler.deleteBan(b);
     }
 
     public static Ban read(User u, int id) {
-        Ban b = new Ban();
-        return b;
+        return sqlHandler.read(u,id);
+    }
+    public static List<Ban> getAllBans(){
+        return sqlHandler.getAllBans();
+    }
+    public static List<Ban> getAllBansFromUser(User u){
+        return sqlHandler.getAllBansFromUser(u);
     }
 }

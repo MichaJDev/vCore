@@ -1,6 +1,8 @@
 package nl.vCore.Dto;
 
 public class Ban {
+
+    private int Id;
     private User BannedUser;
     private User Banner;
     private String reason;
@@ -8,6 +10,14 @@ public class Ban {
 
     public User getBannedUser() {
         return BannedUser;
+    }
+
+    public int getId() {
+        return Id;
+    }
+
+    public void setId(int id) {
+        Id = id;
     }
 
     public void setBannedUser(User bannedUser) {
