@@ -54,5 +54,9 @@ vCore is an all-round databasing plugin that specialises in saving all your nece
     - [ ] YAMLWarnsHandler
     - [ ] YAMLWarpsHandler
 
+### Discord Link
+https://discord.gg/HBGdXtAj5g
+
 ### Supported Plugins
 - None yet :)
+
