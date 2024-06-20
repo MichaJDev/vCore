@@ -7,7 +7,7 @@ import nl.vCore.Utils.MessageUtils;
 
 public class GlobalDatabasingHandler {
 
-    public static void trifferFirstTime() {
+    public static void triggerFirstTime() {
         ConfigHandler cfg = new ConfigHandler(Main.getInstance());
         MessageUtils msgUtils = new MessageUtils(Main.getInstance());
         msgUtils.log("First time starting up vCore, Initialising startup sequence...");

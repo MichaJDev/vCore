@@ -19,13 +19,13 @@ vCore is an all-round databasing plugin that specialises in saving all your nece
     - [x] MSSQLUsersFactory
     - [x] MSSQLHomesFactory
     - [x] MSSQLBansFactory
-    - [ ] MSSQLWarnsFactory
+    - [x] MSSQLWarnsFactory
     - [ ] MSSQLWarpsFactory
   - [ ] MSSQLHandler
     - [x] MSSQLUserHandler  
     - [x] MSSQLBansHandler
     - [x] MSSQLHomesHandler
-    - [ ] MSSQLWarnsHandler
+    - [x] MSSQLWarnsHandler
     - [ ] MSSQLWarpsHandler
 - [ ] MYSQL
   - [ ] MSYSQLFactories

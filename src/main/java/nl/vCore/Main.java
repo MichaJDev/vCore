@@ -28,7 +28,7 @@ public final class Main extends JavaPlugin {
             cfgHandler.createNewConfigFile();
         }
         if(cfgHandler.isFirstTime()){
-            GlobalDatabasingHandler.trifferFirstTime();
+            GlobalDatabasingHandler.triggerFirstTime();
         }
         msgUtils.warn("Comparing Server Offline Player Logging to User Database...");
 

@@ -8,6 +8,7 @@ import nl.vCore.Utils.DtoShaper;
 import nl.vCore.Utils.MessageUtils;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -77,7 +78,7 @@ public class MSSQLWarnsHandler {
     }
 
     public void update(Warn warn) {
-        String query = "UPDATE warns SET reason = ? WHERE id = ? and warned = ?";
+        String query = "UPDATE warns SET reason = ? WHERE id = ? AND warned = ?";
         try (Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement stmt = conn.prepareStatement(query)
         ) {
@@ -90,15 +91,63 @@ public class MSSQLWarnsHandler {
         }
     }
 
-    public void delete(Warn wan) {
-
+    public void delete(Warn w) {
+        String query = "DELETE FROM warns WHERE id = ? AND warned = ?";
+        try(Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+            PreparedStatement stmt = conn.prepareStatement(query)
+        ){
+            stmt.setInt(0, w.getId());
+            stmt.setString(1, w.getWarned().getId().toString());
+            stmt.executeUpdate();
+        }catch(SQLException e){
+            msgUtils.severe(e.getMessage());
+        }
     }
 
     public List<Warn> getAll(User u) {
-
+        List<Warn> warns = new ArrayList<>();
+        String query = "SELECT * FROM warns";
+        try(Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+            PreparedStatement stmt = conn.prepareStatement(query)
+        ){
+            try(ResultSet rs = stmt.executeQuery()){
+                while(rs.next()){
+                    Warn w = new Warn();
+                    w.setId(rs.getInt("id"));
+                    w.setWarner(DtoShaper.userShaper(main.getServer().getPlayer(UUID.fromString(rs.getString("warner")))));
+                    w.setWarned(DtoShaper.userShaper(main.getServer().getPlayer(UUID.fromString(rs.getString("warned")))));
+                    w.setReason(rs.getString("reason"));
+                    w.setDate(rs.getString("date"));
+                    warns.add(w);
+                }
+            }
+        }catch(SQLException e){
+            msgUtils.severe(e.getMessage());
+        }
+        return warns;
     }
 
     public List<Warn> getWarningsFromUser(User u) {
-
+        List<Warn> warns = new ArrayList<>();
+        String query = "SELECT * FROM warns WHERE warned = ?";
+        try(Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+            PreparedStatement stmt = conn.prepareStatement(query)
+        ){
+            stmt.setString(0, u.getId().toString());
+            try(ResultSet rs = stmt.executeQuery()){
+                while(rs.next()){
+                    Warn w = new Warn();
+                    w.setId(rs.getInt("id"));
+                    w.setWarner(DtoShaper.userShaper(main.getServer().getPlayer(UUID.fromString(rs.getString("warner")))));
+                    w.setWarned(DtoShaper.userShaper(main.getServer().getPlayer(UUID.fromString(rs.getString("warned")))));
+                    w.setReason(rs.getString("reason"));
+                    w.setDate(rs.getString("date"));
+                    warns.add(w);
+                }
+            }
+        }catch(SQLException e){
+            msgUtils.severe(e.getMessage());
+        }
+        return warns;
     }
 }
