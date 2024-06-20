@@ -42,8 +42,8 @@ public class MSSQLWarnsFactory {
         return sqlHandler.read(w);
     }
 
-    public static List<Warn> getAll(User u){
-        return sqlHandler.getAll(u);
+    public static List<Warn> getAll(){
+        return sqlHandler.getAll();
     }
     public static List<Warn> getWarnsFromUser(User u){
         return sqlHandler.getWarningsFromUser(u);
