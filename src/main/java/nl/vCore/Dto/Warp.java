@@ -2,18 +2,20 @@ package nl.vCore.Dto;
 
 import org.bukkit.Location;
 
+import java.util.UUID;
+
 public class Warp {
-    private int id;
+    private UUID id;
     private String name;
     private User creator;
     private Location location;
 
-    public int getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setId(String id) {
+        this.id = UUID.fromString(id);
     }
 
     public String getName() {

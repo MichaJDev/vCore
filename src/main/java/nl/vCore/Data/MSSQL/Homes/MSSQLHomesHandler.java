@@ -10,11 +10,12 @@ import org.bukkit.Location;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class MSSQLHomesHandler {
-    private Main main = Main.getInstance();
-    MessageUtils msgUtils = new MessageUtils(main);
+    private final Main main;
+    MessageUtils msgUtils;
     private ConfigHandler cfg;
     private final String JDBC_URL = "jdbc:sqlserver://" + cfg.getConfig().getString("MSSQL.ip") + "\\" + cfg.getConfig().getString("MSSQL.database_name") + ":" + cfg.getConfig().getString("MSSQL.port");
     private final String USERNAME = cfg.getConfig().getString("MSSQL.username");
@@ -22,6 +23,8 @@ public class MSSQLHomesHandler {
 
     public MSSQLHomesHandler(Main _main) {
         main = _main;
+        msgUtils = new MessageUtils(main);
+        cfg = new ConfigHandler(main);
     }
 
     public void createHomesTableIfNotExists() throws SQLException {
@@ -72,7 +75,7 @@ public class MSSQLHomesHandler {
                 h.setId(resultSet.getInt("id"));
                 h.setName(resultSet.getString("name"));
                 h.setLocation(location);
-                h.setOwner(DtoShaper.userShaper(main.getServer().getPlayer(UUID.fromString(resultSet.getString("owner")))));
+                h.setOwner(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString(resultSet.getString("owner"))))));
                 return h;
             }
         } catch (SQLException e) {
@@ -140,7 +143,7 @@ public class MSSQLHomesHandler {
                         Home h = new Home();
                         h.setId(rs.getInt("id"));
                         h.setName(rs.getString("name"));
-                        h.setOwner(DtoShaper.userShaper(main.getServer().getPlayer(UUID.fromString("owner"))));
+                        h.setOwner(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString("owner")))));
                         Location loc = new Location(main.getServer().getWorld(rs.getString("world")), rs.getInt("x"), rs.getInt("y"), rs.getInt("z"));
                         h.setLocation(loc);
                         homes.add(h);
@@ -163,7 +166,7 @@ public class MSSQLHomesHandler {
                 Home h = new Home();
                 h.setId(resultSet.getInt("id"));
                 h.setName(resultSet.getString("name"));
-                h.setOwner(DtoShaper.userShaper(main.getServer().getPlayer(UUID.fromString(resultSet.getString("owner")))));
+                h.setOwner(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString(resultSet.getString("owner"))))));
                 Location loc = new Location(main.getServer().getWorld(resultSet.getString("world")), resultSet.getInt("x"), resultSet.getInt("y"), resultSet.getInt("z"));
                 h.setLocation(loc);
                 homes.add(h);

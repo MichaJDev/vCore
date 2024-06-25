@@ -21,20 +21,19 @@ public class MSSQLWarpsFactory {
     }
 
     public static void create(Warp w) {
-
+        sqlHandler.create(w);
     }
 
     public static void update(Warp w) {
-
+        sqlHandler.update(w);
     }
 
     public static void delete(Warp w) {
-
+        sqlHandler.delete(w);
     }
 
-    public static Warp read() {
-        Warp warp = new Warp();
-        return warp;
+    public static Warp read(Warp w) {
+        return sqlHandler.read(w.getName());
     }
 
 }
