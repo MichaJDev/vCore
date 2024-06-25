@@ -30,7 +30,7 @@ public class MSSQLWarpsHandler {
         Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
         String tableName = "warps";
         String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
-                "id INT PRIMARY KEY IDENTITY(1,1)," +
+                "uuid varchar(255) PRIMARY KEY," +
                 "creator VARCHAR(50)," +
                 "name VARCHAR(50)," +
                 "x INT," +
@@ -45,7 +45,7 @@ public class MSSQLWarpsHandler {
     }
 
     public void create(Warp w) {
-        String query = "INSERT INTO warps (id, creator, name, x, y, z, world) VALUES (? , ? , ? , ? , ? , ? , ? , ? )";
+        String query = "INSERT INTO warps (uuid, creator, name, x, y, z, world) VALUES (? , ? , ? , ? , ? , ? , ? , ? )";
         try (Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement stmt = conn.prepareStatement(query);
         ) {
@@ -84,13 +84,14 @@ public class MSSQLWarpsHandler {
     }
 
     public void update(Warp w) {
-        String query = "UPDATE SET x = ?, y = ?, z = ?, world = ? WHERE id = ?";
+        String query = "UPDATE SET x = ?, y = ?, z = ?, world = ? WHERE uuid = ?";
         try(Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
             PreparedStatement stmt = conn.prepareStatement(query)){
             stmt.setInt(0, w.getLocation().getBlockX());
             stmt.setInt(1, w.getLocation().getBlockY());
             stmt.setInt(2, w.getLocation().getBlockZ());
             stmt.setString(3, w.getLocation().getWorld().getName());
+            stmt.setString(4, w.getId().toString());
             stmt.executeUpdate();
         }catch(SQLException e){
             msgUtils.severe(e.getMessage());
@@ -98,7 +99,7 @@ public class MSSQLWarpsHandler {
     }
 
     public void delete(Warp w) {
-        String query = "DELETE FROM warps WHERE id = ?";
+        String query = "DELETE FROM warps WHERE uuid = ?";
         try(Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
             PreparedStatement stmt = conn.prepareStatement(query)){
             stmt.setString(0, w.getId().toString());
