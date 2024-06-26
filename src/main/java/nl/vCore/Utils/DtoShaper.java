@@ -12,7 +12,7 @@ public class DtoShaper {
         User u = new User();
         u.setIP(p.getAddress().getAddress().toString());
         u.setName(p.getName());
-        u.setDisplayName(p.getDisplayName());
+        u.setDisplayName(p.getScoreboardEntryName());
         u.setId(p.getUniqueId());
         return u;
     }

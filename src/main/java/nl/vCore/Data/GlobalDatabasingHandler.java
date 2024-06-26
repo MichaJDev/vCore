@@ -1,4 +1,4 @@
-package nl.vCore.Data.Factories;
+package nl.vCore.Data;
 
 import nl.vCore.Config.ConfigHandler;
 import nl.vCore.Data.Factories.MSSQL.*;
@@ -13,13 +13,13 @@ public class GlobalDatabasingHandler {
         msgUtils.log("First time starting up vCore, Initialising startup sequence...");
         if (cfg.isYml() && !cfg.isMSSQL() && !cfg.isMYSSQL()) {
             msgUtils.log("YML Enabled, triggering YML Startup Sequence...");
-            GlobalDatabasingHandler.triggerYmlFirstTimeTask();
+            triggerYmlFirstTimeTask();
         } else if (cfg.isMSSQL() && !cfg.isYml() && !cfg.isMYSSQL()) {
             msgUtils.log("MSSQL Enabled, triggering MSSQL Startup Sequence...");
-            GlobalDatabasingHandler.triggerMSSQLFirstTimeTask();
+            triggerMSSQLFirstTimeTask();
         } else if (cfg.isMYSSQL() && !cfg.isMSSQL() && !cfg.isMYSSQL()) {
             msgUtils.log("MYSQL Enabled, triggering MYSQL Startup Sequence...");
-            GlobalDatabasingHandler.triggerMYSQLFirstTimeTask();
+            triggerMYSQLFirstTimeTask();
         } else {
             msgUtils.warn("More than 1 Database type is selected as true...");
             msgUtils.warn("Please make sure only 1 type database is selected in the config.yml...");
