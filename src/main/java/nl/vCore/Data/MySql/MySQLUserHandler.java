@@ -3,6 +3,7 @@ package nl.vCore.Data.MySql;
 import nl.vCore.Config.ConfigHandler;
 import nl.vCore.Dto.User;
 import nl.vCore.Main;
+import nl.vCore.Utils.MessageUtils;
 
 import java.sql.*;
 import java.util.UUID;
@@ -13,11 +14,14 @@ public class MySQLUserHandler {
     private final String user;
     private final String password;
 
+    private final MessageUtils msgUtils;
+
     public MySQLUserHandler(Main main) {
         this.configHandler = new ConfigHandler(main);
         this.url = buildJdbcUrl();
         this.user = configHandler.getConfig().getString("MySQL.username");
         this.password = configHandler.getConfig().getString("MySQL.password");
+        this.msgUtils = new MessageUtils(main);
     }
 
     private String buildJdbcUrl() {
@@ -39,7 +43,7 @@ public class MySQLUserHandler {
             pstmt.setInt(6, u.getWarnTimes());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            msgUtils.severe(e.getMessage());
         }
     }
 
@@ -60,7 +64,7 @@ public class MySQLUserHandler {
                 return u;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            msgUtils.severe(e.getMessage());
         }
         return null;
     }
@@ -77,7 +81,7 @@ public class MySQLUserHandler {
             pstmt.setString(6, u.getId().toString());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            msgUtils.severe(e.getMessage());
         }
     }
 
@@ -88,7 +92,7 @@ public class MySQLUserHandler {
             pstmt.setString(1, id.toString());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            msgUtils.severe(e.getMessage());
         }
     }
 
@@ -104,7 +108,7 @@ public class MySQLUserHandler {
              Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            msgUtils.severe(e.getMessage());
         }
     }
 
