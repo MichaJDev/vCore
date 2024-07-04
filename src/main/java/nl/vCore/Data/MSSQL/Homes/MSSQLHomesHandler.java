@@ -46,7 +46,7 @@ public class MSSQLHomesHandler {
     }
 
     public void create(Home home) {
-        String insertQuery = "INSERT INTO homes(id, owner,name,x,y,z,world) VALUES (?,?,?,?,?,?,?)";
+        String insertQuery = "INSERT INTO homes(owner,name,x,y,z,world) VALUES (?,?,?,?,?,?,?)";
         try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
             insertStatement.setString(0, home.getOwner().getId().toString());
@@ -67,12 +67,12 @@ public class MSSQLHomesHandler {
         String selectQuery = "SELECT * FROM users WHERE id = ? AND name = ?";
         try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement selectStatement = connection.prepareStatement(selectQuery)) {
-            selectStatement.setInt(0, home.getId());
+            selectStatement.setString(0, home.getId().toString());
             selectStatement.setString(1, home.getName());
             try (ResultSet resultSet = selectStatement.executeQuery()) {
                 Location location = new Location(main.getServer().getWorld(resultSet.getString("world")), resultSet.getInt("x"), resultSet.getInt("y"), resultSet.getInt("z"));
                 Home h = new Home();
-                h.setId(resultSet.getInt("id"));
+                h.setId(UUID.fromString(resultSet.getString("id")));
                 h.setName(resultSet.getString("name"));
                 h.setLocation(location);
                 h.setOwner(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString(resultSet.getString("owner"))))));
@@ -86,7 +86,7 @@ public class MSSQLHomesHandler {
     }
 
     public void update(Home h) {
-        String updateQuery = "UPDATE homes SET x = ?, y = ?, z = ?, world =? WHERE owner = ? AND name = ?";
+        String updateQuery = "UPDATE homes SET x = ?, y = ?, z = ?, world = ?, name = ? WHERE owner = ? AND name = ?";
         try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement updateStatement = connection.prepareStatement(updateQuery)) {
             updateStatement.setInt(0, h.getLocation().getBlockX());
@@ -107,7 +107,7 @@ public class MSSQLHomesHandler {
              PreparedStatement deleteStatement = connection.prepareStatement(deleteQuery)) {
             deleteStatement.setString(0, h.getOwner().getId().toString());
             deleteStatement.setString(1, h.getName());
-            deleteStatement.setInt(2, h.getId());
+            deleteStatement.setString(2, h.getId().toString());
             deleteStatement.executeUpdate();
         } catch (SQLException e) {
             msgUtils.severe(e.getMessage());
@@ -141,7 +141,7 @@ public class MSSQLHomesHandler {
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Home h = new Home();
-                        h.setId(rs.getInt("id"));
+                        h.setId(UUID.fromString(rs.getString("id")));
                         h.setName(rs.getString("name"));
                         h.setOwner(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString("owner")))));
                         Location loc = new Location(main.getServer().getWorld(rs.getString("world")), rs.getInt("x"), rs.getInt("y"), rs.getInt("z"));
@@ -164,7 +164,7 @@ public class MSSQLHomesHandler {
              ResultSet resultSet = selectAllStatement.executeQuery()) {
             while (resultSet.next()) {
                 Home h = new Home();
-                h.setId(resultSet.getInt("id"));
+                h.setId(UUID.fromString(resultSet.getString("id")));
                 h.setName(resultSet.getString("name"));
                 h.setOwner(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString(resultSet.getString("owner"))))));
                 Location loc = new Location(main.getServer().getWorld(resultSet.getString("world")), resultSet.getInt("x"), resultSet.getInt("y"), resultSet.getInt("z"));

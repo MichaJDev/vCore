@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 public class MSSQLHomesFactory {
 
@@ -44,6 +45,12 @@ public class MSSQLHomesFactory {
         h.setOwner(u);
         h.setName(name);
         return sqlHandler.read(h);
+    }
+
+    public static boolean checkIfHomeExist(UUID id) {
+        Home h = new Home();
+        h.setId(id);
+        return sqlHandler.checkIfHomeExist(h);
     }
 
     public static List<Home> getHomesFromUser(Player p) {

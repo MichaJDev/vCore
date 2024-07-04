@@ -1,16 +1,14 @@
-package nl.vCore.Data.MySql.Factories;
+package nl.vCore.Data.Factories.MySQL;
 
-import nl.vCore.Data.MySql.MySQLUserHandler;
+import nl.vCore.Data.MySql.Users.MySQLUserHandler;
 import nl.vCore.Dto.User;
 import nl.vCore.Main;
 
-import java.util.UUID;
-
-public class MySqlUserFactory {
+public class MySQLUserFactory {
 
     private static final MySQLUserHandler uh = new MySQLUserHandler(Main.getInstance());
 
-    public static void createUserTableIfNotExist(){
+    public static void triggerFirstStart(){
         uh.createUserTableIfNotExist();
     }
 

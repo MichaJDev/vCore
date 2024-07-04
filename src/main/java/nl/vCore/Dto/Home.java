@@ -2,17 +2,19 @@ package nl.vCore.Dto;
 
 import org.bukkit.Location;
 
+import java.util.UUID;
+
 public class Home {
-    private int id;
+    private UUID id;
     private User owner;
     private String name;
     private Location location;
 
-    public int getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

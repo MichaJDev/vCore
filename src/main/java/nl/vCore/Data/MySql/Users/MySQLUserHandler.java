@@ -1,4 +1,4 @@
-package nl.vCore.Data.MySql;
+package nl.vCore.Data.MySql.Users;
 
 import nl.vCore.Config.ConfigHandler;
 import nl.vCore.Dto.User;
@@ -34,14 +34,14 @@ public class MySQLUserHandler {
     public void create(User u) {
         String sql = "INSERT INTO users (id, name, displayName, IP, banned, warnTimes) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, u.getId().toString());
-            pstmt.setString(2, u.getName());
-            pstmt.setString(3, u.getDisplayName());
-            pstmt.setString(4, u.getIP());
-            pstmt.setBoolean(5, u.isBanned());
-            pstmt.setInt(6, u.getWarnTimes());
-            pstmt.executeUpdate();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, u.getId().toString());
+            stmt.setString(2, u.getName());
+            stmt.setString(3, u.getDisplayName());
+            stmt.setString(4, u.getIP());
+            stmt.setBoolean(5, u.isBanned());
+            stmt.setInt(6, u.getWarnTimes());
+            stmt.executeUpdate();
         } catch (SQLException e) {
             msgUtils.severe(e.getMessage());
         }
@@ -50,9 +50,9 @@ public class MySQLUserHandler {
     public User read(UUID id) {
         String sql = "SELECT * FROM users WHERE id = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, id.toString());
-            ResultSet rs = pstmt.executeQuery();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, id.toString());
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 User u = new User();
                 u.setId(UUID.fromString(rs.getString("id")));
@@ -72,14 +72,14 @@ public class MySQLUserHandler {
     public void update(User u) {
         String sql = "UPDATE users SET name = ?, displayName = ?, IP = ?, banned = ?, warnTimes = ? WHERE id = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, u.getName());
-            pstmt.setString(2, u.getDisplayName());
-            pstmt.setString(3, u.getIP());
-            pstmt.setBoolean(4, u.isBanned());
-            pstmt.setInt(5, u.getWarnTimes());
-            pstmt.setString(6, u.getId().toString());
-            pstmt.executeUpdate();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, u.getName());
+            stmt.setString(2, u.getDisplayName());
+            stmt.setString(3, u.getIP());
+            stmt.setBoolean(4, u.isBanned());
+            stmt.setInt(5, u.getWarnTimes());
+            stmt.setString(6, u.getId().toString());
+            stmt.executeUpdate();
         } catch (SQLException e) {
             msgUtils.severe(e.getMessage());
         }
@@ -88,9 +88,9 @@ public class MySQLUserHandler {
     public void delete(UUID id) {
         String sql = "DELETE FROM users WHERE id = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, id.toString());
-            pstmt.executeUpdate();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, id.toString());
+            stmt.executeUpdate();
         } catch (SQLException e) {
             msgUtils.severe(e.getMessage());
         }
