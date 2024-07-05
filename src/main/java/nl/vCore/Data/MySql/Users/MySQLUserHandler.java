@@ -6,6 +6,8 @@ import nl.vCore.Main;
 import nl.vCore.Utils.MessageUtils;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class MySQLUserHandler {
@@ -94,6 +96,29 @@ public class MySQLUserHandler {
         } catch (SQLException e) {
             msgUtils.severe(e.getMessage());
         }
+    }
+
+    public List<User> getAll() {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while(rs.next()) {
+                    User u = new User();
+                    u.setId(UUID.fromString(rs.getString("id")));
+                    u.setName(rs.getString("name"));
+                    u.setIP(rs.getString("ip"));
+                    u.setDisplayName(rs.getString("displayName"));
+                    u.setWarnTimes(rs.getInt("warnTimes"));
+                    u.setBanned(rs.getBoolean("banned"));
+                    users.add(u);
+                }
+            }
+        } catch (SQLException e) {
+            msgUtils.severe(e.getMessage());
+        }
+        return users;
     }
 
     public void createUserTableIfNotExist() {

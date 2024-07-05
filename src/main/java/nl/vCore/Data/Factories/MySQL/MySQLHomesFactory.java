@@ -10,35 +10,78 @@ import nl.vCore.Utils.MessageUtils;
 public class MySQLHomesFactory {
 
     private static final MySQLHomesHandler sql = new MySQLHomesHandler(Main.getInstance());
-    private static final MessageUtils msg = new MessageUtils(Main.getInstance());
-    public static void create(Home h){
+
+    /**
+     * Creates a new home in the database.
+     *
+     * @param h The Home object to be created and stored.
+     */
+    public static void create(Home h) {
         sql.create(h);
     }
 
-    public static Home read(Home h){
+    /**
+     * Retrieves a home from the database based on its ID.
+     *
+     * @param h The Home object containing the ID to search for.
+     * @return The Home object retrieved from the database.
+     */
+    public static Home read(Home h) {
         return sql.read(h.getId());
     }
 
-    public static void update(Home h){
+    /**
+     * Updates an existing home's information in the database.
+     *
+     * @param h The Home object with updated information to be stored.
+     */
+    public static void update(Home h) {
         sql.update(h);
     }
 
-    public static void delete(Home h){
+    /**
+     * Deletes a home from the database.
+     *
+     * @param h The Home object to be deleted.
+     */
+    public static void delete(Home h) {
         sql.delete(h);
     }
 
-    public static boolean checkIfHomeExists(Home h){
+    /**
+     * Checks if a specific home exists in the database.
+     *
+     * @param h The Home object to check for existence.
+     * @return true if the home exists, false otherwise.
+     */
+    public static boolean checkIfHomeExists(Home h) {
         return sql.checkIfHomeExist(h);
     }
 
-    public static List<Home> getListFromUser(User u){
+    /**
+     * Retrieves all homes associated with a specific user.
+     *
+     * @param u The User object for which to retrieve homes.
+     * @return A List of Home objects associated with the given user.
+     */
+    public static List<Home> getListFromUser(User u) {
         return sql.getListFromUser(u);
     }
-    public static List<Home> getAll(){
+
+    /**
+     * Retrieves all homes from the database.
+     *
+     * @return A List containing all Home objects stored in the database.
+     */
+    public static List<Home> getAll() {
         return sql.getAll();
     }
 
-    public static void triggerFirstStart(){
+    /**
+     * Initializes the database by creating the homes table if it doesn't exist.
+     * This method should be called when the system starts for the first time.
+     */
+    public static void triggerFirstStart() {
         sql.createHomesTableIfNotExists();
     }
 }

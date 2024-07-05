@@ -1,13 +1,19 @@
 package nl.vCore.Dto;
 
+import java.util.UUID;
+
 public class Warn {
 
-    private int id;
+    private UUID id;
     private User warner;
     private User warned;
     private String reason;
 
     private String date;
+
+    public Warn(){
+        id = UUID.randomUUID();
+    }
 
     public String getDate() {
         return date;
@@ -17,11 +23,11 @@ public class Warn {
         this.date = date;
     }
 
-    public int getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

@@ -10,6 +10,10 @@ public class Home {
     private String name;
     private Location location;
 
+    public Home(){
+        id = UUID.randomUUID();
+    }
+
     public UUID getId() {
         return id;
     }

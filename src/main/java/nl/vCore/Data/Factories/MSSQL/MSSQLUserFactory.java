@@ -69,15 +69,16 @@ public class MSSQLUserFactory {
                 sqlHandler.create(u);
             }
         }
-        MessageUtils msgUtils = new MessageUtils(Main.getInstance());
-        msgUtils.log("Database elevated...");
+        msg.log("Database elevated...");
     }
 
     public static boolean compareDB() {
         boolean isEqual = false;
         List<User> localUList = new ArrayList<>();
         List<User> dbUList = MSSQLUserFactory.sqlHandler.getAll();
-
+        for(OfflinePlayer p : Main.getInstance().getServer().getOfflinePlayers()){
+            localUList.add(DtoShaper.userShaper((Player) p));
+        }
         return equalsIgnoreOrder(dbUList, localUList);
     }
 

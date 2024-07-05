@@ -33,7 +33,7 @@ public class MSSQLWarnsHandler {
         Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
         String tableName = "warns";
         String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
-                "id INT PRIMARY KEY IDENTITY(1,1)," +
+                "id VARCHAR(255) PRIMARY KEY," +
                 "warner VARCHAR(50)," +
                 "warned VARCHAR(50)," +
                 "reason text," +
@@ -41,18 +41,18 @@ public class MSSQLWarnsHandler {
                 ");";
         try (Statement statement = connection.createStatement()) {
             statement.execute(createTableSQL);
-            msgUtils.log("Table '" + tableName + "' created (if not already exists)...");
         }
     }
 
     public void create(Warn warn) {
-        String insertQuery = "INSERT INTO (warner, warned,reason,date) VALUES (?,?,?,?)";
+        String insertQuery = "INSERT INTO (id, warner, warned,reason,date) VALUES (?,?,?,?,?)";
         try (Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement stmt = conn.prepareStatement(insertQuery)) {
-            stmt.setString(0, warn.getWarner().getId().toString());
-            stmt.setString(1, warn.getWarned().getId().toString());
-            stmt.setString(2, warn.getReason());
-            stmt.setString(3, warn.getDate());
+            stmt.setString(0, warn.getId().toString());
+            stmt.setString(1, warn.getWarner().getId().toString());
+            stmt.setString(2, warn.getWarned().getId().toString());
+            stmt.setString(3, warn.getReason());
+            stmt.setString(4, warn.getDate());
             stmt.executeUpdate();
         } catch (SQLException e) {
             msgUtils.severe(e.getMessage());
@@ -60,15 +60,14 @@ public class MSSQLWarnsHandler {
     }
 
     public Warn read(Warn warn) {
-        String query = "SELECT * FROM warns WHERE id = ? AND warned = ?";
+        String query = "SELECT * FROM warns WHERE id = ?";
         try (Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement stmt = conn.prepareStatement(query)
         ) {
-            stmt.setInt(0, warn.getId());
-            stmt.setString(1, warn.getWarned().getId().toString());
+            stmt.setString(0, warn.getId().toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 Warn w = new Warn();
-                w.setId(rs.getInt("id"));
+                w.setId(UUID.fromString(rs.getString("id")));
                 w.setWarner(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString(rs.getString("warner"))))));
                 w.setWarned(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString(rs.getString("warned"))))));
                 w.setReason(rs.getString("reason"));
@@ -88,7 +87,7 @@ public class MSSQLWarnsHandler {
              PreparedStatement stmt = conn.prepareStatement(query)
         ) {
             stmt.setString(0, warn.getReason());
-            stmt.setInt(1, warn.getId());
+            stmt.setString(1, warn.getId().toString());
             stmt.setString(2, warn.getWarned().getId().toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -101,7 +100,7 @@ public class MSSQLWarnsHandler {
         try (Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
              PreparedStatement stmt = conn.prepareStatement(query)
         ) {
-            stmt.setInt(0, w.getId());
+            stmt.setString(0, w.getId().toString());
             stmt.setString(1, w.getWarned().getId().toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -118,7 +117,7 @@ public class MSSQLWarnsHandler {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Warn w = new Warn();
-                    w.setId(rs.getInt("id"));
+                    w.setId(UUID.fromString(rs.getString("id")));
                     w.setWarner(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString(rs.getString("warner"))))));
                     w.setWarned(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString(rs.getString("warned"))))));
                     w.setReason(rs.getString("reason"));
@@ -142,7 +141,7 @@ public class MSSQLWarnsHandler {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Warn w = new Warn();
-                    w.setId(rs.getInt("id"));
+                    w.setId(UUID.fromString(rs.getString("id")));
                     w.setWarner(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString(rs.getString("warner"))))));
                     w.setWarned(DtoShaper.userShaper(Objects.requireNonNull(main.getServer().getPlayer(UUID.fromString(rs.getString("warned"))))));
                     w.setReason(rs.getString("reason"));
