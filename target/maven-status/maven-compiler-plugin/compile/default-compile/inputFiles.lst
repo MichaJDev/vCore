@@ -23,7 +23,6 @@ H:\Code\vCore\src\main\java\nl\vCore\Dto\User.java
 H:\Code\vCore\src\main\java\nl\vCore\Main.java
 H:\Code\vCore\src\main\java\nl\vCore\Data\Factories\MSSQL\MSSQLBanFactory.java
 H:\Code\vCore\src\main\java\nl\vCore\Data\MSSQL\Homes\MSSQLHomesHandler.java
-H:\Code\vCore\src\main\java\nl\vCore\Data\Factories\MySQL\MySQLWarnsFactory.java
 H:\Code\vCore\src\main\java\nl\vCore\Data\GlobalDatabasingHandler.java
 H:\Code\vCore\src\main\java\nl\vCore\Data\Factories\MySQL\MySQLWarpsFactory.java
 H:\Code\vCore\src\main\java\nl\vCore\Utils\DtoShaper.java

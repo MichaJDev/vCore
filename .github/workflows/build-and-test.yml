@@ -13,17 +13,41 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-      
-      - name: Set up JDK 17
+      - name: Manual Repository Checkout
         run: |
-          wget -O- https://apt.corretto.aws/corretto.key | gpg --dearmor > /usr/share/keyrings/corretto-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | tee /etc/apt/sources.list.d/corretto.list
-          apt-get update
-          apt-get install -y java-17-amazon-corretto-jdk
-          echo "JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto" >> $GITHUB_ENV
+          # Get repository information
+          REPO_URL="https://github.com/${{ github.repository }}.git"
+          
+          # Clone the repository
+          git clone $REPO_URL .
+          
+          # Checkout the correct branch or PR
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin pull/${{ github.event.number }}/head:pr-${{ github.event.number }}
+            git checkout pr-${{ github.event.number }}
+          else
+            git checkout ${{ github.ref_name }}
+          fi
+          
+          # Set git identity for potential later commits
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # List files to verify checkout
+          ls -la
+        shell: bash
+      
+      - name: Set up JDK 21
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gpg
+          wget -O- https://apt.corretto.aws/corretto.key | sudo gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | sudo tee /etc/apt/sources.list.d/corretto.list
+          sudo apt-get update
+          sudo apt-get install -y java-21-amazon-corretto-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto" >> $GITHUB_ENV
           echo "$JAVA_HOME/bin" >> $GITHUB_PATH
+          java -version
         shell: bash
         
       - name: Setup Maven
@@ -58,13 +82,37 @@ jobs:
           mkdir -p artifacts
           cp target/*.jar artifacts/
           
-      - name: Upload Build Artifacts
+      - name: Custom Artifact Upload
         if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: vCore-artifacts
-          path: artifacts/
-          retention-days: 14
+        run: |
+          # Create artifacts directory on the runner
+          ARTIFACTS_DIR="${RUNNER_TEMP}/artifacts"
+          mkdir -p "${ARTIFACTS_DIR}"
+          
+          # Copy artifacts
+          cp -r artifacts/* "${ARTIFACTS_DIR}/"
+          
+          # Create artifact metadata and manifest
+          echo '{
+            "name": "vCore-artifacts",
+            "retention-days": 14
+          }' > "${ARTIFACTS_DIR}/__metadata.json"
+          ls -la "${ARTIFACTS_DIR}" > "${ARTIFACTS_DIR}/manifest.txt"
+          
+          # Upload using GitHub's artifact upload REST API
+          cd "${ARTIFACTS_DIR}"
+          
+          # Create a ZIP archive
+          zip -r artifact.zip .
+          
+          # Upload using GitHub API
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/zip" \
+            --data-binary "@artifact.zip" \
+            "https://uploads.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+        shell: bash
           
   analyze:
     name: Code Analysis
@@ -73,17 +121,37 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        
-      - name: Set up JDK 17
+      - name: Manual Repository Checkout
         run: |
-          wget -O- https://apt.corretto.aws/corretto.key | gpg --dearmor > /usr/share/keyrings/corretto-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | tee /etc/apt/sources.list.d/corretto.list
-          apt-get update
-          apt-get install -y java-17-amazon-corretto-jdk
-          echo "JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto" >> $GITHUB_ENV
+          # Get repository information
+          REPO_URL="https://github.com/${{ github.repository }}.git"
+          
+          # Clone the repository
+          git clone $REPO_URL .
+          
+          # Checkout the correct branch or PR
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin pull/${{ github.event.number }}/head:pr-${{ github.event.number }}
+            git checkout pr-${{ github.event.number }}
+          else
+            git checkout ${{ github.ref_name }}
+          fi
+          
+          # List files to verify checkout
+          ls -la
+        shell: bash
+        
+      - name: Set up JDK 21
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gpg
+          wget -O- https://apt.corretto.aws/corretto.key | sudo gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | sudo tee /etc/apt/sources.list.d/corretto.list
+          sudo apt-get update
+          sudo apt-get install -y java-21-amazon-corretto-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto" >> $GITHUB_ENV
           echo "$JAVA_HOME/bin" >> $GITHUB_PATH
+          java -version
         shell: bash
         
       - name: Setup Maven
@@ -109,6 +177,38 @@ jobs:
           mvn com.github.spotbugs:spotbugs-maven-plugin:4.7.3.4:check || true
         shell: bash
 
+      - name: Custom Analysis Report Upload
+        run: |
+          # Create reports directory on the runner
+          REPORTS_DIR="${RUNNER_TEMP}/analysis-reports"
+          mkdir -p "${REPORTS_DIR}"
+          
+          # Copy reports
+          cp pmd-report.txt "${REPORTS_DIR}/"
+          [ -f "target/spotbugsXml.xml" ] && cp target/spotbugsXml.xml "${REPORTS_DIR}/" || echo "No SpotBugs reports found."
+          
+          # Create artifact metadata
+          echo '{
+            "name": "analysis-reports",
+            "retention-days": 14
+          }' > "${REPORTS_DIR}/__metadata.json"
+          ls -la "${REPORTS_DIR}" > "${REPORTS_DIR}/manifest.txt"
+          
+          # Upload using GitHub's artifact upload REST API
+          cd "${REPORTS_DIR}"
+          
+          # Create a ZIP archive
+          zip -r reports.zip .
+          
+          # Upload using GitHub API
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/zip" \
+            --data-binary "@reports.zip" \
+            "https://uploads.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+        shell: bash
+
   notify:
     name: Notifications
     runs-on: ubuntu-latest
@@ -131,5 +231,5 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mailutils
-          echo "${{ steps.notification.outputs.status }}" | mail -s "vCore Build Status" $GITHUB_ACTOR@users.noreply.github.com || true
+          echo "${{ steps.notification.outputs.status }}" | mail -s "vCore Build Status" ${{ github.actor }}@users.noreply.github.com || true
         shell: bash 

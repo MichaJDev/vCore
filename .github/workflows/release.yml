@@ -20,10 +20,28 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Manual Repository Checkout
+        run: |
+          # Get repository information
+          REPO_URL="https://github.com/${{ github.repository }}.git"
+          
+          # Clone the repository with full history
+          git clone --depth=0 $REPO_URL .
+          
+          # Checkout the correct ref
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            git checkout ${{ github.ref_name }}
+          else
+            git checkout ${{ github.ref }}
+          fi
+          
+          # Set git identity for potential later commits
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # List files to verify checkout
+          ls -la
+        shell: bash
       
       - name: Extract version
         id: extract-version
@@ -109,6 +127,10 @@ jobs:
           # Get release notes
           RELEASE_NOTES=$(cat release/RELEASE_NOTES.md)
           
+          # Install jq for JSON processing
+          sudo apt-get update
+          sudo apt-get install -y jq
+          
           # Prepare JSON payload for GitHub API
           JSON_DATA=$(jq -n \
             --arg tag_name "v${{ steps.extract-version.outputs.version }}" \
@@ -123,7 +145,7 @@ jobs:
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             -d "$JSON_DATA" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/releases")
+            "https://api.github.com/repos/${{ github.repository }}/releases")
           
           # Extract the upload URL from the response
           UPLOAD_URL=$(echo "$RESPONSE" | jq -r .upload_url | sed 's/{?name,label}//')
@@ -148,7 +170,7 @@ jobs:
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: application/java-archive" \
             -H "Accept: application/vnd.github.v3+json" \
-            --data-binary @release/vCore-${{ steps.extract-version.outputs.version }}.jar \
+            --data-binary "@release/vCore-${{ steps.extract-version.outputs.version }}.jar" \
             "${UPLOAD_URL}?name=vCore-${{ steps.extract-version.outputs.version }}.jar"
           
           # Upload the checksums
@@ -156,7 +178,7 @@ jobs:
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: text/plain" \
             -H "Accept: application/vnd.github.v3+json" \
-            --data-binary @release/SHA256SUMS.txt \
+            --data-binary "@release/SHA256SUMS.txt" \
             "${UPLOAD_URL}?name=SHA256SUMS.txt"
           
           # Upload the release notes
@@ -164,7 +186,7 @@ jobs:
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: text/markdown" \
             -H "Accept: application/vnd.github.v3+json" \
-            --data-binary @release/RELEASE_NOTES.md \
+            --data-binary "@release/RELEASE_NOTES.md" \
             "${UPLOAD_URL}?name=RELEASE_NOTES.md"
         shell: bash
 
@@ -175,8 +197,28 @@ jobs:
     if: success()
     
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Manual Repository Checkout
+        run: |
+          # Get repository information
+          REPO_URL="https://github.com/${{ github.repository }}.git"
+          
+          # Clone the repository with fetch-depth=0 to get all history for gh-pages
+          git clone --depth=0 $REPO_URL .
+          
+          # Fetch all branches including gh-pages
+          git fetch --all
+          
+          # Checkout the current branch to build documentation
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            git checkout ${{ github.ref_name }}
+          else
+            git checkout ${{ github.ref }}
+          fi
+          
+          # Set git identity for commits
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+        shell: bash
       
       - name: Set up JDK 17
         run: |
@@ -204,19 +246,19 @@ jobs:
       
       - name: Deploy to GitHub Pages
         run: |
-          # Setup git user
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          
-          # Create gh-pages branch if it doesn't exist
-          git fetch origin gh-pages || git branch gh-pages
-          
           # Create temp directory for docs
           TEMP_DIR=$(mktemp -d)
           cp -r target/site/apidocs/* $TEMP_DIR
           
-          # Switch to gh-pages branch
-          git checkout gh-pages || git checkout --orphan gh-pages
+          # Check if gh-pages branch exists
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            # Branch exists, switch to it
+            git checkout gh-pages
+          else
+            # Create orphan branch
+            git checkout --orphan gh-pages
+            git rm -rf .
+          fi
           
           # Remove old content and add new content
           git rm -rf . || true
@@ -228,5 +270,8 @@ jobs:
           # Commit and push
           git add .
           git commit -m "Update documentation for v${{ steps.extract-version.outputs.version }}" || echo "No changes to commit"
-          git push origin gh-pages
+          
+          # Push using token authentication
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push origin gh-pages --force
         shell: bash 

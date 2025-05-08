@@ -4,7 +4,6 @@ nl\vCore\Data\Factories\MSSQL\MSSQLWarpsFactory.class
 nl\vCore\Dto\User.class
 nl\vCore\Data\MSSQL\Warps\MSSQLWarpsHandler.class
 nl\vCore\Data\MySql\Warns\MySQLWarnsHandler.class
-nl\vCore\Data\Factories\MySQL\MySQLWarnsFactory.class
 nl\vCore\Data\MySql\Bans\MySQLBanHandler.class
 nl\vCore\Data\Factories\MySQL\MySQLWarnsFactory_new.class
 nl\vCore\Data\Factories\MySQL\MySQLHomesFactory.class
