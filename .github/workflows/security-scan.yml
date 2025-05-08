@@ -21,8 +21,25 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Manual Repository Checkout
+        run: |
+          # Get repository information
+          REPO_URL="https://github.com/${{ github.repository }}.git"
+          
+          # Clone the repository
+          git clone $REPO_URL .
+          
+          # Checkout the correct branch or PR
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin pull/${{ github.event.number }}/head:pr-${{ github.event.number }}
+            git checkout pr-${{ github.event.number }}
+          else
+            git checkout ${{ github.ref_name }}
+          fi
+          
+          # List files to verify checkout
+          ls -la
+        shell: bash
       
       - name: Set up JDK 17
         run: |
@@ -79,22 +96,60 @@ jobs:
           fi
         shell: bash
       
-      - name: Upload Dependency Check Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: dependency-check-report
-          path: dependency-check-report/
-          retention-days: 30
+      - name: Custom Upload Dependency Check Report
+        run: |
+          # Create reports directory on the runner
+          REPORTS_DIR="${RUNNER_TEMP}/dependency-check-report"
+          mkdir -p "${REPORTS_DIR}"
+          
+          # Copy reports
+          cp -r dependency-check-report/* "${REPORTS_DIR}/"
+          
+          # Create artifact metadata
+          echo '{
+            "name": "dependency-check-report",
+            "retention-days": 30
+          }' > "${REPORTS_DIR}/__metadata.json"
+          
+          # Upload using GitHub's artifact upload REST API
+          cd "${REPORTS_DIR}"
+          
+          # Create a ZIP archive
+          zip -r reports.zip .
+          
+          # Upload using GitHub API
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/zip" \
+            --data-binary "@reports.zip" \
+            "https://uploads.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+        shell: bash
   
   sonarqube-scan:
     name: SonarQube-like Code Analysis
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Manual Repository Checkout
+        run: |
+          # Get repository information
+          REPO_URL="https://github.com/${{ github.repository }}.git"
+          
+          # Clone the repository with full history
+          git clone --depth=0 $REPO_URL .
+          
+          # Checkout the correct branch or PR
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin pull/${{ github.event.number }}/head:pr-${{ github.event.number }}
+            git checkout pr-${{ github.event.number }}
+          else
+            git checkout ${{ github.ref_name }}
+          fi
+          
+          # List files to verify checkout
+          ls -la
+        shell: bash
       
       - name: Set up JDK 17
         run: |
@@ -228,12 +283,35 @@ jobs:
           EOL
         shell: bash
       
-      - name: Upload Security Reports
-        uses: actions/upload-artifact@v3
-        with:
-          name: security-reports
-          path: security-reports/
-          retention-days: 30
+      - name: Custom Upload Security Reports
+        run: |
+          # Create reports directory on the runner
+          REPORTS_DIR="${RUNNER_TEMP}/security-reports"
+          mkdir -p "${REPORTS_DIR}"
+          
+          # Copy reports
+          cp -r security-reports/* "${REPORTS_DIR}/"
+          
+          # Create artifact metadata
+          echo '{
+            "name": "security-reports",
+            "retention-days": 30
+          }' > "${REPORTS_DIR}/__metadata.json"
+          
+          # Upload using GitHub's artifact upload REST API
+          cd "${REPORTS_DIR}"
+          
+          # Create a ZIP archive
+          zip -r reports.zip .
+          
+          # Upload using GitHub API
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/zip" \
+            --data-binary "@reports.zip" \
+            "https://uploads.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+        shell: bash
   
   notify:
     name: Security Notification
@@ -271,6 +349,8 @@ jobs:
           cat notification.txt
           
           # In a real environment, you would send this notification via email, Slack, etc.
-          # Example for email (commented out as it requires configuration):
-          # mail -s "vCore Security Scan Results" admin@example.com < notification.txt
+          # Example for email:
+          sudo apt-get update
+          sudo apt-get install -y mailutils
+          mail -s "vCore Security Scan Results" ${{ github.actor }}@users.noreply.github.com < notification.txt || true
         shell: bash 
