@@ -1,0 +1,276 @@
+name: vCore Security Scanning
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sunday at midnight
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'pom.xml'
+      - '**/*.java'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'pom.xml'
+      - '**/*.java'
+  workflow_dispatch:
+
+jobs:
+  dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gpg
+          wget -O- https://apt.corretto.aws/corretto.key | sudo gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | sudo tee /etc/apt/sources.list.d/corretto.list
+          sudo apt-get update
+          sudo apt-get install -y java-17-amazon-corretto-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto" >> $GITHUB_ENV
+          echo "$JAVA_HOME/bin" >> $GITHUB_PATH
+        shell: bash
+        
+      - name: Setup Maven
+        run: |
+          mkdir -p $HOME/maven
+          wget -q https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -O $HOME/maven.tar.gz
+          tar -xzf $HOME/maven.tar.gz -C $HOME/maven --strip-components=1
+          echo "M2_HOME=$HOME/maven" >> $GITHUB_ENV
+          echo "$HOME/maven/bin" >> $GITHUB_PATH
+        shell: bash
+      
+      - name: Download OWASP Dependency Check
+        run: |
+          mkdir -p $HOME/owasp-dependency-check
+          wget -q https://github.com/jeremylong/DependencyCheck/releases/download/v7.4.4/dependency-check-7.4.4-release.zip -O $HOME/dependency-check.zip
+          unzip -q $HOME/dependency-check.zip -d $HOME/owasp-dependency-check
+          chmod +x $HOME/owasp-dependency-check/dependency-check/bin/dependency-check.sh
+        shell: bash
+      
+      - name: Run OWASP Dependency Check
+        run: |
+          $HOME/owasp-dependency-check/dependency-check/bin/dependency-check.sh \
+            --scan . \
+            --project "vCore" \
+            --format "HTML" \
+            --format "JSON" \
+            --out dependency-check-report
+        shell: bash
+      
+      - name: Process Scan Results
+        id: scan-results
+        run: |
+          # Check if vulnerabilities found
+          if grep -q '"severityLevel":[1-9]' dependency-check-report/dependency-check-report.json; then
+            echo "vulnerabilities_found=true" >> $GITHUB_OUTPUT
+            VULN_COUNT=$(grep -o '"severityLevel":[1-9]' dependency-check-report/dependency-check-report.json | wc -l)
+            echo "vulnerability_count=$VULN_COUNT" >> $GITHUB_OUTPUT
+            echo "High severity vulnerabilities detected in dependencies. Check the report for details."
+          else
+            echo "vulnerabilities_found=false" >> $GITHUB_OUTPUT
+            echo "vulnerability_count=0" >> $GITHUB_OUTPUT
+            echo "No vulnerabilities detected in dependencies."
+          fi
+        shell: bash
+      
+      - name: Upload Dependency Check Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-check-report
+          path: dependency-check-report/
+          retention-days: 30
+  
+  sonarqube-scan:
+    name: SonarQube-like Code Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up JDK 17
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gpg
+          wget -O- https://apt.corretto.aws/corretto.key | sudo gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | sudo tee /etc/apt/sources.list.d/corretto.list
+          sudo apt-get update
+          sudo apt-get install -y java-17-amazon-corretto-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto" >> $GITHUB_ENV
+          echo "$JAVA_HOME/bin" >> $GITHUB_PATH
+        shell: bash
+        
+      - name: Install PMD
+        run: |
+          mkdir -p $HOME/pmd
+          wget -q https://github.com/pmd/pmd/releases/download/pmd_releases%2F6.55.0/pmd-bin-6.55.0.zip -O $HOME/pmd.zip
+          unzip -q $HOME/pmd.zip -d $HOME/pmd
+          echo "$HOME/pmd/pmd-bin-6.55.0/bin" >> $GITHUB_PATH
+        shell: bash
+      
+      - name: Install SpotBugs
+        run: |
+          mkdir -p $HOME/spotbugs
+          wget -q https://github.com/spotbugs/spotbugs/releases/download/4.7.3/spotbugs-4.7.3.zip -O $HOME/spotbugs.zip
+          unzip -q $HOME/spotbugs.zip -d $HOME/spotbugs
+          echo "$HOME/spotbugs/spotbugs-4.7.3/bin" >> $GITHUB_PATH
+        shell: bash
+      
+      - name: Install FindSecBugs
+        run: |
+          mkdir -p $HOME/findsecbugs
+          wget -q https://github.com/find-sec-bugs/find-sec-bugs/releases/download/version-1.12.0/findsecbugs-cli-1.12.0.zip -O $HOME/findsecbugs.zip
+          unzip -q $HOME/findsecbugs.zip -d $HOME/findsecbugs
+        shell: bash
+      
+      - name: Run PMD Security Rules
+        run: |
+          mkdir -p security-reports/pmd
+          $HOME/pmd/pmd-bin-6.55.0/bin/run.sh pmd \
+            -d src/ \
+            -R category/java/security.xml \
+            -f xml \
+            -r security-reports/pmd/security-report.xml
+        shell: bash
+        continue-on-error: true
+      
+      - name: Run SpotBugs with FindSecBugs
+        run: |
+          mkdir -p security-reports/spotbugs
+          
+          # Compile the project first
+          mvn compile
+          
+          # Run SpotBugs with FindSecBugs
+          java -jar $HOME/spotbugs/spotbugs-4.7.3/lib/spotbugs.jar \
+            -pluginList $HOME/findsecbugs/findsecbugs-plugin-1.12.0.jar \
+            -include $HOME/findsecbugs/include.xml \
+            -xml:withMessages \
+            -output security-reports/spotbugs/security-report.xml \
+            target/classes
+        shell: bash
+        continue-on-error: true
+      
+      - name: Custom Java Security Scanner
+        run: |
+          mkdir -p security-reports/custom
+          
+          # Create a temporary grep script to find potential security issues
+          cat > security_scanner.sh << 'EOL'
+          #!/bin/bash
+          
+          echo "# vCore Security Scan Results" > security-reports/custom/security-report.md
+          echo "## SQL Injection Vulnerabilities" >> security-reports/custom/security-report.md
+          grep -r --include="*.java" -n "executeQuery\(.*\+.*)" src/ | while read -r line; do
+            echo "- $line" >> security-reports/custom/security-report.md
+          done
+
+          echo "## Hardcoded Credentials" >> security-reports/custom/security-report.md
+          grep -r --include="*.java" -n "password.*=.*\"" src/ | while read -r line; do
+            echo "- $line" >> security-reports/custom/security-report.md
+          done
+
+          echo "## Log Injection" >> security-reports/custom/security-report.md
+          grep -r --include="*.java" -n "log.*\(.*\+.*\)" src/ | while read -r line; do
+            echo "- $line" >> security-reports/custom/security-report.md
+          done
+
+          echo "## Insecure Random" >> security-reports/custom/security-report.md
+          grep -r --include="*.java" -n "new Random" src/ | while read -r line; do
+            echo "- $line" >> security-reports/custom/security-report.md
+          done
+          EOL
+          
+          chmod +x security_scanner.sh
+          ./security_scanner.sh
+        shell: bash
+      
+      - name: Generate Summary Report
+        run: |
+          mkdir -p security-reports/summary
+          
+          cat > security-reports/summary/index.html << 'EOL'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>vCore Security Scan Summary</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              h1 { color: #333; }
+              .warning { color: orange; }
+              .error { color: red; }
+              .success { color: green; }
+            </style>
+          </head>
+          <body>
+            <h1>vCore Security Scan Summary</h1>
+            <p>Scan completed on $(date)</p>
+            
+            <h2>Findings Overview</h2>
+            <ul>
+              <li>PMD Security Rules: $(grep -c "<violation" security-reports/pmd/security-report.xml 2>/dev/null || echo "0") findings</li>
+              <li>SpotBugs + FindSecBugs: $(grep -c "<BugInstance" security-reports/spotbugs/security-report.xml 2>/dev/null || echo "0") findings</li>
+              <li>Custom Scanner: 
+                $(grep -c "^- " security-reports/custom/security-report.md 2>/dev/null || echo "0") potential issues</li>
+            </ul>
+            
+            <p>Please review the detailed reports for more information.</p>
+          </body>
+          </html>
+          EOL
+        shell: bash
+      
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: security-reports/
+          retention-days: 30
+  
+  notify:
+    name: Security Notification
+    runs-on: ubuntu-latest
+    needs: [dependency-check, sonarqube-scan]
+    if: success() || failure()
+    
+    steps:
+      - name: Prepare Notification
+        id: prepare
+        run: |
+          if [[ "${{ needs.dependency-check.result }}" == "success" && "${{ needs.sonarqube-scan.result }}" == "success" ]]; then
+            echo "status=Security scan completed successfully" >> $GITHUB_OUTPUT
+            echo "icon=✅" >> $GITHUB_OUTPUT
+          else
+            echo "status=Security scan detected issues" >> $GITHUB_OUTPUT
+            echo "icon=⚠️" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "${{ needs.dependency-check.outputs.vulnerabilities_found }}" == "true" ]]; then
+            echo "vuln_count=${{ needs.dependency-check.outputs.vulnerability_count }} vulnerabilities found in dependencies" >> $GITHUB_OUTPUT
+          else
+            echo "vuln_count=No vulnerabilities found in dependencies" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+      
+      - name: Send Security Notification
+        run: |
+          echo "Security Scan Results" > notification.txt
+          echo "-------------------" >> notification.txt
+          echo "${{ steps.prepare.outputs.icon }} ${{ steps.prepare.outputs.status }}" >> notification.txt
+          echo "Dependency Check: ${{ steps.prepare.outputs.vuln_count }}" >> notification.txt
+          echo "Check the security-reports artifact for detailed information." >> notification.txt
+          
+          cat notification.txt
+          
+          # In a real environment, you would send this notification via email, Slack, etc.
+          # Example for email (commented out as it requires configuration):
+          # mail -s "vCore Security Scan Results" admin@example.com < notification.txt
+        shell: bash 

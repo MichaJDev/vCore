@@ -9,7 +9,22 @@ import nl.vCore.Utils.MessageUtils;
 
 public class MySQLHomesFactory {
 
-    private static final MySQLHomesHandler sql = new MySQLHomesHandler(Main.getInstance());
+    private static final MySQLHomesHandler hh = new MySQLHomesHandler(Main.getInstance());
+    private static final MessageUtils msgUtils = new MessageUtils(Main.getInstance());
+
+    /**
+     * Creates the homes table in the database if it doesn't exist.
+     * This method should be called during initial setup.
+     */
+    public static void createTable() {
+        try {
+            msgUtils.log("Creating homes table in MySQL database...");
+            hh.createHomesTableIfNotExists();
+            msgUtils.log("Homes table created successfully!");
+        } catch (Exception e) {
+            msgUtils.severe("Failed to create homes table: " + e.getMessage());
+        }
+    }
 
     /**
      * Creates a new home in the database.
@@ -17,7 +32,7 @@ public class MySQLHomesFactory {
      * @param h The Home object to be created and stored.
      */
     public static void create(Home h) {
-        sql.create(h);
+        hh.create(h);
     }
 
     /**
@@ -27,16 +42,26 @@ public class MySQLHomesFactory {
      * @return The Home object retrieved from the database.
      */
     public static Home read(Home h) {
-        return sql.read(h.getId());
+        return hh.read(h.getId());
     }
 
     /**
-     * Updates an existing home's information in the database.
+     * Retrieves all homes belonging to a specific user.
      *
-     * @param h The Home object with updated information to be stored.
+     * @param u The User whose homes to retrieve.
+     * @return A List of Home objects belonging to the user.
+     */
+    public static List<Home> getListFromUser(User u) {
+        return hh.getListFromUser(u);
+    }
+
+    /**
+     * Updates an existing home in the database.
+     *
+     * @param h The Home object to be updated.
      */
     public static void update(Home h) {
-        sql.update(h);
+        hh.update(h);
     }
 
     /**
@@ -45,36 +70,26 @@ public class MySQLHomesFactory {
      * @param h The Home object to be deleted.
      */
     public static void delete(Home h) {
-        sql.delete(h);
+        hh.delete(h);
     }
 
     /**
-     * Checks if a specific home exists in the database.
+     * Checks if a home exists in the database.
      *
-     * @param h The Home object to check for existence.
+     * @param h The Home object to check for.
      * @return true if the home exists, false otherwise.
      */
     public static boolean checkIfHomeExists(Home h) {
-        return sql.checkIfHomeExist(h);
-    }
-
-    /**
-     * Retrieves all homes associated with a specific user.
-     *
-     * @param u The User object for which to retrieve homes.
-     * @return A List of Home objects associated with the given user.
-     */
-    public static List<Home> getListFromUser(User u) {
-        return sql.getListFromUser(u);
+        return hh.checkIfHomeExist(h);
     }
 
     /**
      * Retrieves all homes from the database.
      *
-     * @return A List containing all Home objects stored in the database.
+     * @return A List of all Home objects stored in the database.
      */
     public static List<Home> getAll() {
-        return sql.getAll();
+        return hh.getAll();
     }
 
     /**
@@ -82,6 +97,6 @@ public class MySQLHomesFactory {
      * This method should be called when the system starts for the first time.
      */
     public static void triggerFirstStart() {
-        sql.createHomesTableIfNotExists();
+        hh.createHomesTableIfNotExists();
     }
 }

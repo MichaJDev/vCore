@@ -7,7 +7,6 @@ import nl.vCore.Main;
 import nl.vCore.Utils.DtoShaper;
 import nl.vCore.Utils.MessageUtils;
 
-import javax.xml.transform.Result;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.*;
@@ -41,45 +40,59 @@ public class MySQLWarnsHandler {
         String sql = "INSERT INTO warns (id, warner, warned, reason, date) VALUES (?, ?, ?, ?, ?);";
         try(Connection conn = DriverManager.getConnection(url, user, password);
             PreparedStatement stmt = conn.prepareStatement(sql)){
-            stmt.setString(0, w.getId().toString());
-            stmt.setString(1, w.getWarner().getId().toString());
-            stmt.setString(2, w.getWarned().getId().toString());
-            stmt.setString(3, w.getReason());
-            stmt.setString(4, w.getDate());
+            stmt.setString(1, w.getId().toString());
+            stmt.setString(2, w.getWarner().getId().toString());
+            stmt.setString(3, w.getWarned().getId().toString());
+            stmt.setString(4, w.getReason());
+            stmt.setString(5, w.getDate());
+            stmt.executeUpdate();
+            msgUtils.log("Warning created successfully!");
         }catch (SQLException e){
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to create warning: " + e.getMessage());
         }
     }
 
     public Warn read(UUID id){
         String sql = "SELECT * FROM warns WHERE id = ?;";
-        try(Connection conn = DriverManager.getConnection(sql);
+        try(Connection conn = DriverManager.getConnection(url, user, password);
             PreparedStatement stmt = conn.prepareStatement(sql)){
-            stmt.setString(0,id.toString());
+            stmt.setString(1, id.toString());
             try(ResultSet rs = stmt.executeQuery()){
-                Warn w = new Warn();
-                w.setId(id);
-                w.setWarned(DtoShaper.userShaper(Objects.requireNonNull(Main.getInstance().getServer().getPlayer(UUID.fromString(rs.getString("warned"))))));
-                w.setWarner(DtoShaper.userShaper(Objects.requireNonNull(Main.getInstance().getServer().getPlayer(UUID.fromString(rs.getString("warner"))))));
-                w.setReason(rs.getString("reason"));
-                w.setDate(rs.getString("date"));
-                return w;
+                if (rs.next()) {
+                    Warn w = new Warn();
+                    w.setId(id);
+                    
+                    // Use the safer method for getting users from UUID strings
+                    String warnedId = rs.getString("warned");
+                    String warnerId = rs.getString("warner");
+                    
+                    w.setWarned(DtoShaper.userShaperFromUUID(warnedId));
+                    w.setWarner(DtoShaper.userShaperFromUUID(warnerId));
+                    w.setReason(rs.getString("reason"));
+                    w.setDate(rs.getString("date"));
+                    return w;
+                }
             }
         }catch(SQLException e){
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to read warning: " + e.getMessage());
         }
         return null;
     }
 
     public void update(Warn w){
-        String sql = "UPDATE SET reason = ? WHERE id = ?;";
+        String sql = "UPDATE warns SET reason = ? WHERE id = ?;";
         try(Connection conn = DriverManager.getConnection(url, user, password);
             PreparedStatement stmt = conn.prepareStatement(sql)){
-            stmt.setString(0, w.getReason());
-            stmt.setString(1, w.getId().toString());
-            stmt.executeUpdate();
+            stmt.setString(1, w.getReason());
+            stmt.setString(2, w.getId().toString());
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                msgUtils.log("Warning updated successfully!");
+            } else {
+                msgUtils.warn("No warning found with ID: " + w.getId());
+            }
         }catch (SQLException e){
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to update warning: " + e.getMessage());
         }
     }
 
@@ -87,9 +100,15 @@ public class MySQLWarnsHandler {
         String sql = "DELETE FROM warns WHERE id = ?;";
         try(Connection conn = DriverManager.getConnection(url, user, password);
             PreparedStatement stmt = conn.prepareStatement(sql)){
-            stmt.setString(0, w.getId().toString());
+            stmt.setString(1, w.getId().toString());
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                msgUtils.log("Warning deleted successfully!");
+            } else {
+                msgUtils.warn("No warning found with ID: " + w.getId());
+            }
         }catch (SQLException e){
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to delete warning: " + e.getMessage());
         }
     }
 
@@ -97,20 +116,28 @@ public class MySQLWarnsHandler {
         List<Warn> warns = new ArrayList<>();
         String sql = "SELECT * FROM warns;";
         try(Connection conn = DriverManager.getConnection(url, user, password);
-            PreparedStatement stmt = conn.prepareStatement(sql)){
-            try(ResultSet rs = stmt.executeQuery()){
-                while(rs.next()){
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()){
+            while(rs.next()){
+                try {
                     Warn w = new Warn();
-                    w.setId(UUID.fromString("id"));
-                    w.setWarned(DtoShaper.userShaper(Objects.requireNonNull(Main.getInstance().getServer().getPlayer(UUID.fromString(rs.getString("warned"))))));
-                    w.setWarner(DtoShaper.userShaper(Objects.requireNonNull(Main.getInstance().getServer().getPlayer(UUID.fromString(rs.getString("warner"))))));
+                    w.setId(UUID.fromString(rs.getString("id")));
+                    
+                    // Use the safer method for getting users from UUID strings
+                    String warnedId = rs.getString("warned");
+                    String warnerId = rs.getString("warner");
+                    
+                    w.setWarned(DtoShaper.userShaperFromUUID(warnedId));
+                    w.setWarner(DtoShaper.userShaperFromUUID(warnerId));
                     w.setReason(rs.getString("reason"));
                     w.setDate(rs.getString("date"));
                     warns.add(w);
+                } catch (IllegalArgumentException e) {
+                    msgUtils.severe("Invalid UUID in warns table: " + e.getMessage());
                 }
             }
         }catch(SQLException e){
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to fetch all warnings: " + e.getMessage());
         }
         return warns;
     }
@@ -120,20 +147,29 @@ public class MySQLWarnsHandler {
         String sql = "SELECT * FROM warns WHERE warned = ?;";
         try(Connection conn = DriverManager.getConnection(url, user, password);
          PreparedStatement stmt = conn.prepareStatement(sql)){
-            stmt.setString(0, u.getId().toString());
+            stmt.setString(1, u.getId().toString());
             try(ResultSet rs = stmt.executeQuery()){
                 while(rs.next()){
-                    Warn w = new Warn();
-                    w.setId(UUID.fromString("id"));
-                    w.setWarned(DtoShaper.userShaper(Objects.requireNonNull(Main.getInstance().getServer().getPlayer(UUID.fromString(rs.getString("warned"))))));
-                    w.setWarner(DtoShaper.userShaper(Objects.requireNonNull(Main.getInstance().getServer().getPlayer(UUID.fromString(rs.getString("warner"))))));
-                    w.setReason(rs.getString("reason"));
-                    w.setDate(rs.getString("date"));
-                    warns.add(w);
+                    try {
+                        Warn w = new Warn();
+                        w.setId(UUID.fromString(rs.getString("id")));
+                        
+                        // Use the safer method for getting users from UUID strings
+                        String warnedId = rs.getString("warned");
+                        String warnerId = rs.getString("warner");
+                        
+                        w.setWarned(DtoShaper.userShaperFromUUID(warnedId));
+                        w.setWarner(DtoShaper.userShaperFromUUID(warnerId));
+                        w.setReason(rs.getString("reason"));
+                        w.setDate(rs.getString("date"));
+                        warns.add(w);
+                    } catch (IllegalArgumentException e) {
+                        msgUtils.severe("Invalid UUID in warns table: " + e.getMessage());
+                    }
                 }
             }
         }catch(SQLException e){
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to fetch warnings for user: " + e.getMessage());
         }
         return warns;
     }
@@ -142,14 +178,84 @@ public class MySQLWarnsHandler {
         String sql = "CREATE TABLE IF NOT EXISTS warns (" +
                 "id VARCHAR(255) PRIMARY KEY, " +
                 "warner VARCHAR(255), " +
-                "warmed VARCHAR(255), " +
-                "reason VARCHAR(255), )" +
-                "date VARCHAR(255);";
+                "warned VARCHAR(255), " +
+                "reason VARCHAR(255), " +
+                "date VARCHAR(255));";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
+            msgUtils.log("Warns table created successfully!");
         } catch (SQLException e) {
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to create warns table: " + e.getMessage());
         }
+    }
+
+    /**
+     * Gets all warns for a specific player
+     *
+     * @param playerUuid The UUID of the player
+     * @return List of warns for the player
+     */
+    public List<Warn> getWarnsForPlayer(UUID playerUuid) {
+        List<Warn> warns = new ArrayList<>();
+        String sql = "SELECT * FROM warns WHERE warned = ?;";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, playerUuid.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    try {
+                        Warn w = new Warn();
+                        w.setId(UUID.fromString(rs.getString("id")));
+                        
+                        // Use the safer method for getting users from UUID strings
+                        String warnedId = rs.getString("warned");
+                        String warnerId = rs.getString("warner");
+                        
+                        w.setWarned(DtoShaper.userShaperFromUUID(warnedId));
+                        w.setWarner(DtoShaper.userShaperFromUUID(warnerId));
+                        w.setReason(rs.getString("reason"));
+                        w.setDate(rs.getString("date"));
+                        warns.add(w);
+                    } catch (IllegalArgumentException e) {
+                        msgUtils.severe("Invalid UUID in warns table: " + e.getMessage());
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            msgUtils.severe("Failed to fetch warnings for player: " + e.getMessage());
+        }
+        return warns;
+    }
+    
+    /**
+     * Gets all warns from the database
+     *
+     * @return List of all warns
+     */
+    public List<Warn> getAllWarns() {
+        return getAll(); // Reuse existing method
+    }
+    
+    /**
+     * Checks if a warn exists in the database
+     *
+     * @param warn The warn to check
+     * @return true if the warn exists, false otherwise
+     */
+    public boolean doesWarnExist(Warn warn) {
+        String sql = "SELECT COUNT(*) FROM warns WHERE id = ?;";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, warn.getId().toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            msgUtils.severe("Failed to check if warn exists: " + e.getMessage());
+        }
+        return false;
     }
 }

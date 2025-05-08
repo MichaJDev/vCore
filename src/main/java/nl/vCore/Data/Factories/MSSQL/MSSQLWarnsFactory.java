@@ -8,6 +8,7 @@ import nl.vCore.Utils.MessageUtils;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 public class MSSQLWarnsFactory {
 
@@ -35,7 +36,7 @@ public class MSSQLWarnsFactory {
         sqlHandler.delete(w);
     }
 
-    public static Warn read(User u, int id) {
+    public static Warn read(User u, UUID id) {
         Warn w = new Warn();
         w.setId(id);
         w.setWarned(u);

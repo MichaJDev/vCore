@@ -23,8 +23,7 @@ public class MSSQLUserFactory {
             msg.log("Creating new User Table in MSSQL DB...");
             sqlHandler.createUsersTableIfNotExists();
         } catch (SQLException e) {
-            MessageUtils msg = new MessageUtils(Main.getInstance());
-            msg.log(e.getMessage());
+            msg.severe("Failed to create users table: " + e.getMessage());
         }
     }
 
@@ -45,12 +44,17 @@ public class MSSQLUserFactory {
     }
 
     public static User readFromUUID(String uuid) {
-        User u = new User();
-        u.setId(UUID.fromString(uuid));
-        if (doesUserExist(u)) {
-            return sqlHandler.read(uuid);
+        try {
+            User u = new User();
+            u.setId(UUID.fromString(uuid));
+            if (doesUserExist(u)) {
+                return sqlHandler.read(uuid);
+            }
+            return null;
+        } catch (IllegalArgumentException e) {
+            msg.severe("Invalid UUID format: " + uuid);
+            return null;
         }
-        return null;
     }
 
     public static boolean doesUserExist(User u) {
@@ -59,9 +63,16 @@ public class MSSQLUserFactory {
 
     public static void elevateDB() {
         List<User> localUList = new ArrayList<>();
+        msg.log("Collecting offline players data...");
+        
         for (OfflinePlayer p : Main.getInstance().getServer().getOfflinePlayers()) {
-            localUList.add(DtoShaper.userShaper((Player) p));
+            User user = DtoShaper.userShaper(p);
+            if (user != null) {
+                localUList.add(user);
+            }
         }
+        
+        msg.log("Syncing " + localUList.size() + " players with database...");
         for (User u : localUList) {
             if (sqlHandler.checkIfUserExists(u)) {
                 sqlHandler.update(u);
@@ -73,18 +84,21 @@ public class MSSQLUserFactory {
     }
 
     public static boolean compareDB() {
-        boolean isEqual = false;
         List<User> localUList = new ArrayList<>();
-        List<User> dbUList = MSSQLUserFactory.sqlHandler.getAll();
-        for(OfflinePlayer p : Main.getInstance().getServer().getOfflinePlayers()){
-            localUList.add(DtoShaper.userShaper((Player) p));
+        List<User> dbUList = sqlHandler.getAll();
+        
+        msg.log("Comparing database ("+dbUList.size()+" records) with offline players...");
+        for (OfflinePlayer p : Main.getInstance().getServer().getOfflinePlayers()) {
+            User user = DtoShaper.userShaper(p);
+            if (user != null) {
+                localUList.add(user);
+            }
         }
+        
         return equalsIgnoreOrder(dbUList, localUList);
     }
 
     private static <T> boolean equalsIgnoreOrder(List<T> a, List<T> b) {
         return ImmutableMultiset.copyOf(a).equals(ImmutableMultiset.copyOf(b));
     }
-
-
 }

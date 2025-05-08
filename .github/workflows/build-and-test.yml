@@ -1,0 +1,135 @@
+name: vCore Build and Test
+
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        run: |
+          wget -O- https://apt.corretto.aws/corretto.key | gpg --dearmor > /usr/share/keyrings/corretto-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | tee /etc/apt/sources.list.d/corretto.list
+          apt-get update
+          apt-get install -y java-17-amazon-corretto-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto" >> $GITHUB_ENV
+          echo "$JAVA_HOME/bin" >> $GITHUB_PATH
+        shell: bash
+        
+      - name: Setup Maven
+        run: |
+          mkdir -p $HOME/maven
+          wget -q https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -O $HOME/maven.tar.gz
+          tar -xzf $HOME/maven.tar.gz -C $HOME/maven --strip-components=1
+          echo "M2_HOME=$HOME/maven" >> $GITHUB_ENV
+          echo "$HOME/maven/bin" >> $GITHUB_PATH
+        shell: bash
+      
+      - name: Cache Maven packages
+        run: |
+          mkdir -p $HOME/.m2
+          find $HOME/.m2 -name "_remote.repositories" -type f -delete
+          find $HOME/.m2 -name "*.lastUpdated" -type f -delete
+        shell: bash
+      
+      - name: Build with Maven
+        run: mvn -B clean package --file pom.xml
+        
+      - name: Run tests
+        run: mvn -B test
+        
+      - name: Generate Javadoc
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: mvn javadoc:javadoc
+        
+      - name: Archive artifacts
+        if: success()
+        run: |
+          mkdir -p artifacts
+          cp target/*.jar artifacts/
+          
+      - name: Upload Build Artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: vCore-artifacts
+          path: artifacts/
+          retention-days: 14
+          
+  analyze:
+    name: Code Analysis
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK 17
+        run: |
+          wget -O- https://apt.corretto.aws/corretto.key | gpg --dearmor > /usr/share/keyrings/corretto-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | tee /etc/apt/sources.list.d/corretto.list
+          apt-get update
+          apt-get install -y java-17-amazon-corretto-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto" >> $GITHUB_ENV
+          echo "$JAVA_HOME/bin" >> $GITHUB_PATH
+        shell: bash
+        
+      - name: Setup Maven
+        run: |
+          mkdir -p $HOME/maven
+          wget -q https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -O $HOME/maven.tar.gz
+          tar -xzf $HOME/maven.tar.gz -C $HOME/maven --strip-components=1
+          echo "M2_HOME=$HOME/maven" >> $GITHUB_ENV
+          echo "$HOME/maven/bin" >> $GITHUB_PATH
+        shell: bash
+      
+      - name: Static Analysis with PMD
+        run: |
+          mkdir -p tools
+          wget -q https://github.com/pmd/pmd/releases/download/pmd_releases%2F6.55.0/pmd-bin-6.55.0.zip -O tools/pmd.zip
+          unzip -q tools/pmd.zip -d tools
+          tools/pmd-bin-6.55.0/bin/run.sh pmd -d src/main/java -R rulesets/java/quickstart.xml -f text -r pmd-report.txt || true
+          cat pmd-report.txt
+        shell: bash
+      
+      - name: Find bugs with SpotBugs
+        run: |
+          mvn com.github.spotbugs:spotbugs-maven-plugin:4.7.3.4:check || true
+        shell: bash
+
+  notify:
+    name: Notifications
+    runs-on: ubuntu-latest
+    needs: [build, analyze]
+    if: always()
+    
+    steps:
+      - name: Prepare Notification
+        id: notification
+        run: |
+          if [[ "${{ needs.build.result }}" == "success" && "${{ needs.analyze.result }}" == "success" ]]; then
+            echo "status=Success: vCore build and analysis complete" >> $GITHUB_OUTPUT
+          else
+            echo "status=Failed: vCore build or analysis failed" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+      
+      - name: Send Mail Notification
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mailutils
+          echo "${{ steps.notification.outputs.status }}" | mail -s "vCore Build Status" $GITHUB_ACTOR@users.noreply.github.com || true
+        shell: bash 

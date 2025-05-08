@@ -3,12 +3,28 @@ package nl.vCore.Data.Factories.MySQL;
 import nl.vCore.Data.MySql.Users.MySQLUserHandler;
 import nl.vCore.Dto.User;
 import nl.vCore.Main;
+import nl.vCore.Utils.MessageUtils;
 
 import java.util.List;
 
 public class MySQLUserFactory {
 
     private static final MySQLUserHandler uh = new MySQLUserHandler(Main.getInstance());
+    private static final MessageUtils msgUtils = new MessageUtils(Main.getInstance());
+
+    /**
+     * Creates the user table in the database if it doesn't exist.
+     * This method should be called during initial setup.
+     */
+    public static void createTable() {
+        try {
+            msgUtils.log("Creating user table in MySQL database...");
+            uh.createUserTableIfNotExist();
+            msgUtils.log("User table created successfully!");
+        } catch (Exception e) {
+            msgUtils.severe("Failed to create user table: " + e.getMessage());
+        }
+    }
 
     /**
      * Initializes the database by creating the user table if it doesn't exist.
@@ -54,6 +70,7 @@ public class MySQLUserFactory {
     public static void delete(User u) {
         uh.delete(u.getId());
     }
+    
     /**
      * Retrieves all users from the database.
      *

@@ -5,6 +5,8 @@ import nl.vCore.Dto.Ban;
 import nl.vCore.Main;
 import nl.vCore.Utils.DtoShaper;
 import nl.vCore.Utils.MessageUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.sql.*;
@@ -33,16 +35,17 @@ public class MySQLBanHandler {
     }
 
     public void create(Ban ban) {
-        String sql = "INSERT (bannedUser, banner, reason, date) VALUES ( ?, ?, ?, ?)";
+        String sql = "INSERT INTO bans (bannedUser, banner, reason, date) VALUES (?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(0, ban.getBannedUser().getId().toString());
-            stmt.setString(1, ban.getBanner().getId().toString());
-            stmt.setString(2, ban.getReason());
-            stmt.setString(3, ban.getDate());
+            stmt.setString(1, ban.getBannedUser().getId().toString());
+            stmt.setString(2, ban.getBanner().getId().toString());
+            stmt.setString(3, ban.getReason());
+            stmt.setString(4, ban.getDate());
             stmt.executeUpdate();
+            msgUtils.log("Ban created successfully!");
         } catch (SQLException e) {
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to create ban: " + e.getMessage());
         }
     }
 
@@ -51,45 +54,59 @@ public class MySQLBanHandler {
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                Ban b = new Ban();
-                b.setId(rs.getInt("id"));
-                b.setBannedUser(DtoShaper.userShaper((Player) Main.getInstance().getServer().getOfflinePlayer(UUID.fromString(rs.getString("bannedUserId")))));
-                b.setBanner(DtoShaper.userShaper((Player) Main.getInstance().getServer().getOfflinePlayer(UUID.fromString(rs.getString("bannerId")))));
-                b.setReason(rs.getString("reason"));
-                b.setDate(rs.getString("date"));
-                return b;
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Ban b = new Ban();
+                    b.setId(rs.getInt("id"));
+                    
+                    // Use the safe method for creating Users from UUID
+                    String bannedUserId = rs.getString("bannedUser");
+                    String bannerId = rs.getString("banner");
+                    
+                    b.setBannedUser(DtoShaper.userShaperFromUUID(bannedUserId));
+                    b.setBanner(DtoShaper.userShaperFromUUID(bannerId));
+                    b.setReason(rs.getString("reason"));
+                    b.setDate(rs.getString("date"));
+                    return b;
+                }
             }
         } catch (SQLException e) {
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to read ban: " + e.getMessage());
         }
         return null;
     }
 
     public void update(Ban b) {
-        String sql = "UPDATE bans SET reason = ? AND date = ? WHERE id = ? ";
+        String sql = "UPDATE bans SET reason = ?, date = ? WHERE id = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
-            stmt.setString(0, b.getReason());
-            stmt.setString(1, b.getDate());
-            stmt.setInt(2, b.getId());
-            stmt.executeUpdate();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, b.getReason());
+            stmt.setString(2, b.getDate());
+            stmt.setInt(3, b.getId());
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                msgUtils.log("Ban updated successfully!");
+            } else {
+                msgUtils.warn("No ban found with ID: " + b.getId());
+            }
         } catch (SQLException e) {
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to update ban: " + e.getMessage());
         }
     }
 
     public void delete(Ban b) {
         String sql = "DELETE FROM bans WHERE id = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
-            stmt.setInt(0, b.getId());
-            stmt.executeUpdate();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, b.getId());
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                msgUtils.log("Ban deleted successfully!");
+            } else {
+                msgUtils.warn("No ban found with ID: " + b.getId());
+            }
         } catch (SQLException e) {
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to delete ban: " + e.getMessage());
         }
     }
 
@@ -99,13 +116,13 @@ public class MySQLBanHandler {
                 "bannedUser VARCHAR(255), " +
                 "banner VARCHAR(255), " +
                 "reason VARCHAR(255), " +
-                "date VARCHAR(10));";
+                "date VARCHAR(255));";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
+            msgUtils.log("Bans table created successfully!");
         } catch (SQLException e) {
-            msgUtils.severe(e.getMessage());
+            msgUtils.severe("Failed to create bans table: " + e.getMessage());
         }
     }
-
 }
