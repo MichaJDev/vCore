@@ -37,16 +37,17 @@ jobs:
           ls -la
         shell: bash
       
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         run: |
           sudo apt-get update
           sudo apt-get install -y wget gpg
           wget -O- https://apt.corretto.aws/corretto.key | sudo gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | sudo tee /etc/apt/sources.list.d/corretto.list
           sudo apt-get update
-          sudo apt-get install -y java-17-amazon-corretto-jdk
-          echo "JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto" >> $GITHUB_ENV
+          sudo apt-get install -y java-21-amazon-corretto-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto" >> $GITHUB_ENV
           echo "$JAVA_HOME/bin" >> $GITHUB_PATH
+          java -version
         shell: bash
         
       - name: Setup Maven
@@ -140,16 +141,17 @@ jobs:
           ls -la
         shell: bash
         
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         run: |
           sudo apt-get update
           sudo apt-get install -y wget gpg
           wget -O- https://apt.corretto.aws/corretto.key | sudo gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | sudo tee /etc/apt/sources.list.d/corretto.list
           sudo apt-get update
-          sudo apt-get install -y java-17-amazon-corretto-jdk
-          echo "JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto" >> $GITHUB_ENV
+          sudo apt-get install -y java-21-amazon-corretto-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto" >> $GITHUB_ENV
           echo "$JAVA_HOME/bin" >> $GITHUB_PATH
+          java -version
         shell: bash
         
       - name: Setup Maven
